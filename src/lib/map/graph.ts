@@ -34,7 +34,9 @@ export interface QuestGraphNode {
 export interface QuestGraphEdge {
   id: string;
   source: string;
+  sourceHandle: 'source-left' | 'source-right';
   target: string;
+  targetHandle: 'target-left' | 'target-right';
 }
 
 type Point = { x: number; y: number };
@@ -80,6 +82,8 @@ export function buildQuestGraph(space: QuestSpace): {
       y: ATLAS_FOCUS.y + layout.offset.y,
     };
 
+    let previousNode: QuestGraphNode | undefined;
+
     quest.steps.forEach((step, stepIndex) => {
       const distance = stepIndex - activeStepIndex;
       const position = distance === 0
@@ -89,21 +93,26 @@ export function buildQuestGraph(space: QuestSpace): {
             y: anchor.y + layout.direction.y * distance,
           };
 
-      nodes.push({
+      const node: QuestGraphNode = {
         id: step.id,
         position,
         selected: nodes.length === 0,
         data: { ...step, questTitle: quest.title, color: quest.color },
-      });
+      };
+      nodes.push(node);
 
-      const previousStep = quest.steps[stepIndex - 1];
-      if (previousStep) {
+      if (previousNode) {
+        const flowsRight = previousNode.position.x <= node.position.x;
         edges.push({
-          id: `edge-${previousStep.id}-${step.id}`,
-          source: previousStep.id,
-          target: step.id,
+          id: `edge-${previousNode.id}-${node.id}`,
+          source: previousNode.id,
+          sourceHandle: flowsRight ? 'source-right' : 'source-left',
+          target: node.id,
+          targetHandle: flowsRight ? 'target-left' : 'target-right',
         });
       }
+
+      previousNode = node;
     });
   });
 

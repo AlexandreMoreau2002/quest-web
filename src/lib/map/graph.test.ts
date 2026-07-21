@@ -23,7 +23,41 @@ describe('buildQuestGraph', () => {
     expect(graph.nodes).toHaveLength(2);
     expect(graph.nodes[0]).toMatchObject({ id: 'step-1', selected: true });
     expect(graph.edges).toEqual([
-      expect.objectContaining({ id: 'edge-step-1-step-2', source: 'step-1', target: 'step-2' }),
+      expect.objectContaining({
+        id: 'edge-step-1-step-2',
+        source: 'step-1',
+        sourceHandle: 'source-right',
+        target: 'step-2',
+        targetHandle: 'target-left',
+      }),
+    ]);
+  });
+
+  it('anchors a leftward branch to the matching card boundaries', () => {
+    const graph = buildQuestGraph({
+      id: 'space-1',
+      name: 'Ma quête',
+      quests: [
+        {
+          id: 'quest-1',
+          title: 'Lire',
+          color: '#55d9bd',
+          steps: [
+            { id: 'step-1', title: 'Choisir un livre', status: 'locked' },
+            { id: 'step-2', title: 'Lire le premier chapitre', status: 'locked' },
+          ],
+        },
+        {
+          id: 'quest-2',
+          title: 'Courir',
+          color: '#a78bfa',
+          steps: [{ id: 'step-3', title: 'Sortie longue', status: 'active' }],
+        },
+      ],
+    });
+
+    expect(graph.edges).toEqual([
+      expect.objectContaining({ source: 'step-1', sourceHandle: 'source-left', target: 'step-2', targetHandle: 'target-right' }),
     ]);
   });
 

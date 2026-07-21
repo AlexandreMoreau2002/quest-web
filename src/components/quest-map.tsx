@@ -21,14 +21,13 @@ type QuestFlowNode = Node<QuestGraphNode['data']>;
 function QuestNode({ data, selected }: NodeProps<QuestFlowNode>) {
   return (
     <div className={`quest-node status-${data.status} ${selected ? 'is-selected' : ''}`} style={{ '--quest-color': data.color } as React.CSSProperties}>
-      <Handle type="target" position={Position.Left} className="node-handle" />
-      <span className="node-core" aria-hidden="true"><span className="node-orb" /></span>
-      <span className="node-copy">
-        <strong>{data.title}</strong>
-        <span className="node-status">{data.status === 'done' ? 'Accompli' : data.status === 'active' ? 'En cours' : 'À venir'}</span>
-        <small>{data.questTitle}</small>
-      </span>
-      <Handle type="source" position={Position.Right} className="node-handle" />
+      <Handle id="target-left" type="target" position={Position.Left} className="node-handle" />
+      <Handle id="source-left" type="source" position={Position.Left} className="node-handle" />
+      <span className="node-status">{data.status === 'done' ? 'Accompli' : data.status === 'active' ? 'En cours' : 'À venir'}</span>
+      <strong>{data.title}</strong>
+      <small className="node-description">{data.questTitle}</small>
+      <Handle id="target-right" type="target" position={Position.Right} className="node-handle" />
+      <Handle id="source-right" type="source" position={Position.Right} className="node-handle" />
     </div>
   );
 }
