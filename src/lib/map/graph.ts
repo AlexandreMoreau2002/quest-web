@@ -9,11 +9,12 @@ export interface QuestStep {
 export interface Quest {
   id: string;
   title: string;
-  color: string;
+  color?: string;
   steps: QuestStep[];
 }
 
 export interface QuestNodeData extends QuestStep, Record<string, unknown> {
+  questId: string;
   questTitle: string;
   color: string;
 }
@@ -42,6 +43,11 @@ export interface QuestGraphEdge {
 type Point = { x: number; y: number };
 
 const ATLAS_FOCUS: Point = { x: 760, y: 480 };
+const CARD_WIDTH = 210;
+const CARD_HEIGHT = 104;
+const CARD_GAP = 64;
+const CARD_CLEARANCE = { x: CARD_WIDTH + CARD_GAP, y: CARD_HEIGHT + CARD_GAP };
+const QUEST_COLORS = ['#b49cff', '#55d9bd', '#f6ae6e', '#7dd3fc', '#f9a8d4'];
 const BRANCH_LAYOUTS: Array<{ offset: Point; direction: Point }> = [
   { offset: { x: 0, y: 0 }, direction: { x: 350, y: 220 } },
   { offset: { x: -400, y: 310 }, direction: { x: -250, y: 250 } },
@@ -66,6 +72,42 @@ function branchSlot(questIndex: number, focusQuestIndex: number): number {
   return questIndex < focusQuestIndex ? questIndex + 1 : questIndex;
 }
 
+function cardsOverlap(first: Point, second: Point): boolean {
+  return Math.abs(first.x - second.x) < CARD_CLEARANCE.x
+    && Math.abs(first.y - second.y) < CARD_CLEARANCE.y;
+}
+
+function findOpenPosition(position: Point, placedNodes: QuestGraphNode[]): Point {
+  if (!placedNodes.some((node) => cardsOverlap(position, node.position))) {
+    return position;
+  }
+
+  const directions = [
+    { x: 1, y: 1 },
+    { x: -1, y: 1 },
+    { x: 1, y: -1 },
+    { x: -1, y: -1 },
+    { x: 1, y: 0 },
+    { x: -1, y: 0 },
+    { x: 0, y: 1 },
+    { x: 0, y: -1 },
+  ];
+
+  for (let ring = 1; ring <= 12; ring += 1) {
+    for (const direction of directions) {
+      const candidate = {
+        x: position.x + direction.x * CARD_CLEARANCE.x * ring,
+        y: position.y + direction.y * CARD_CLEARANCE.y * ring,
+      };
+      if (!placedNodes.some((node) => cardsOverlap(candidate, node.position))) {
+        return candidate;
+      }
+    }
+  }
+
+  return position;
+}
+
 export function buildQuestGraph(space: QuestSpace): {
   nodes: QuestGraphNode[];
   edges: QuestGraphEdge[];
@@ -82,8 +124,6 @@ export function buildQuestGraph(space: QuestSpace): {
       y: ATLAS_FOCUS.y + layout.offset.y,
     };
 
-    let previousNode: QuestGraphNode | undefined;
-
     quest.steps.forEach((step, stepIndex) => {
       const distance = stepIndex - activeStepIndex;
       const position = distance === 0
@@ -95,24 +135,33 @@ export function buildQuestGraph(space: QuestSpace): {
 
       const node: QuestGraphNode = {
         id: step.id,
-        position,
+        position: findOpenPosition(position, nodes),
         selected: nodes.length === 0,
-        data: { ...step, questTitle: quest.title, color: quest.color },
+        data: {
+          ...step,
+          questId: quest.id,
+          questTitle: quest.title,
+          color: quest.color ?? QUEST_COLORS[questIndex % QUEST_COLORS.length]!,
+        },
       };
       nodes.push(node);
+    });
+  });
 
-      if (previousNode) {
-        const flowsRight = previousNode.position.x <= node.position.x;
-        edges.push({
-          id: `edge-${previousNode.id}-${node.id}`,
-          source: previousNode.id,
-          sourceHandle: flowsRight ? 'source-right' : 'source-left',
-          target: node.id,
-          targetHandle: flowsRight ? 'target-left' : 'target-right',
-        });
-      }
+  space.quests.forEach((quest) => {
+    quest.steps.slice(1).forEach((step, index) => {
+      const previousNode = nodes.find((node) => node.id === quest.steps[index]?.id);
+      const node = nodes.find((candidate) => candidate.id === step.id);
+      if (!previousNode || !node) return;
 
-      previousNode = node;
+      const flowsRight = previousNode.position.x <= node.position.x;
+      edges.push({
+        id: `edge-${previousNode.id}-${node.id}`,
+        source: previousNode.id,
+        sourceHandle: flowsRight ? 'source-right' : 'source-left',
+        target: node.id,
+        targetHandle: flowsRight ? 'target-left' : 'target-right',
+      });
     });
   });
 

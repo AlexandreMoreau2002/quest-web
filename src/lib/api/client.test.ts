@@ -25,4 +25,30 @@ describe('QuestApiClient', () => {
       cache: 'no-store',
     });
   });
+
+  it('creates a quest in the selected space through the API', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          id: 'quest-a',
+          title: 'Lancer Quest',
+          description: null,
+          steps: [{ id: 'step-a', title: 'Définir le MVP', status: 'active' }],
+        }),
+        { status: 201 },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    await new QuestApiClient('http://localhost:3001').createQuest('space-a', {
+      title: 'Lancer Quest',
+      steps: ['Définir le MVP'],
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/spaces/space-a/quests', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: 'Lancer Quest', steps: ['Définir le MVP'] }),
+    });
+  });
 });

@@ -12,6 +12,7 @@ export function useQuestMap() {
   const [space, setSpace] = useState<QuestSpace>(fallbackSpace);
   const [source, setSource] = useState<'local' | 'api'>('local');
   const [selectedId, setSelectedId] = useState(fallbackSpace.quests[0]?.steps[0]?.id ?? '');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -36,22 +37,90 @@ export function useQuestMap() {
   const graph = useMemo(() => buildQuestGraph(space), [space]);
   const selectedNode = graph.nodes.find((node) => node.id === selectedId) ?? graph.nodes[0];
 
-  const createQuest = useCallback((title: string) => {
+  const createQuest = useCallback(async (title: string, firstStepTitle: string): Promise<boolean> => {
     const cleanTitle = title.trim();
-    if (!cleanTitle) return;
+    const cleanStepTitle = firstStepTitle.trim() || 'Définir la première étape';
+    if (!cleanTitle) return false;
+
+    if (source === 'api') {
+      try {
+        const newQuest = await new QuestApiClient(API_URL).createQuest(space.id, {
+          title: cleanTitle,
+          steps: [cleanStepTitle],
+        });
+        setSpace((current) => ({ ...current, quests: [...current.quests, newQuest] }));
+        setSelectedId(newQuest.steps[0]?.id ?? '');
+        setError(null);
+        return true;
+      } catch {
+        setError('La quête n’a pas été enregistrée. Vérifie que l’API est bien lancée.');
+        return false;
+      }
+    }
 
     const id = `local-${Date.now()}`;
     const newQuest: Quest = {
       id,
       title: cleanTitle,
       color: ['#7dd3fc', '#f9a8d4', '#c4b5fd'][space.quests.length % 3],
-      steps: [{ id: `${id}-step-1`, title: 'Définir la première étape', status: 'active' }],
+      steps: [{ id: `${id}-step-1`, title: cleanStepTitle, status: 'active' }],
     };
 
     setSpace((current) => ({ ...current, quests: [...current.quests, newQuest] }));
     setSelectedId(newQuest.steps[0].id);
-    setSource('local');
-  }, [space.quests.length]);
+    setError(null);
+    return true;
+  }, [source, space.id, space.quests.length]);
 
-  return { graph, selectedId, selectedNode, selectNode: setSelectedId, createQuest, source, spaceName: space.name };
+  const createStep = useCallback(async (title: string): Promise<boolean> => {
+    const cleanTitle = title.trim();
+    if (!cleanTitle || !selectedNode) return false;
+
+    const quest = space.quests.find((candidate) => candidate.id === selectedNode.data.questId);
+    if (!quest) return false;
+
+    if (source === 'api') {
+      try {
+        const newStep = await new QuestApiClient(API_URL).createStep(quest.id, {
+          title: cleanTitle,
+          order: quest.steps.length,
+        });
+        setSpace((current) => ({
+          ...current,
+          quests: current.quests.map((candidate) => candidate.id === quest.id
+            ? { ...candidate, steps: [...candidate.steps, newStep] }
+            : candidate),
+        }));
+        setSelectedId(newStep.id);
+        setError(null);
+        return true;
+      } catch {
+        setError('L’étape n’a pas été enregistrée. Réessaie dans un instant.');
+        return false;
+      }
+    }
+
+    const newStep = { id: `local-step-${Date.now()}`, title: cleanTitle, status: 'locked' as const };
+    setSpace((current) => ({
+      ...current,
+      quests: current.quests.map((candidate) => candidate.id === quest.id
+        ? { ...candidate, steps: [...candidate.steps, newStep] }
+        : candidate),
+    }));
+    setSelectedId(newStep.id);
+    setError(null);
+    return true;
+  }, [selectedNode, source, space.quests]);
+
+  return {
+    graph,
+    selectedId,
+    selectedNode,
+    selectNode: setSelectedId,
+    createQuest,
+    createStep,
+    source,
+    error,
+    spaceName: space.name,
+  };
 }

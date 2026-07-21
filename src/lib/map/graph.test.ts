@@ -3,6 +3,28 @@ import { describe, expect, it } from 'vitest';
 import { buildQuestGraph } from './graph';
 
 describe('buildQuestGraph', () => {
+  it('keeps a clear card-sized gap between every generated step', () => {
+    const graph = buildQuestGraph({
+      id: 'space-1',
+      name: 'Atlas',
+      quests: Array.from({ length: 10 }, (_, index) => ({
+        id: `quest-${index}`,
+        title: `Quête ${index}`,
+        color: '#a78bfa',
+        steps: [
+          { id: `step-${index}-a`, title: 'Préparer', status: 'done' as const },
+          { id: `step-${index}-b`, title: 'Avancer', status: 'active' as const },
+        ],
+      })),
+    });
+
+    for (const [index, node] of graph.nodes.entries()) {
+      for (const other of graph.nodes.slice(index + 1)) {
+        expect(Math.abs(node.position.x - other.position.x) >= 274 || Math.abs(node.position.y - other.position.y) >= 168).toBe(true);
+      }
+    }
+  });
+
   it('turns quest steps into connected flow nodes with a selected first step', () => {
     const graph = buildQuestGraph({
       id: 'space-1',

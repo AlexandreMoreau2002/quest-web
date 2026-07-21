@@ -46,7 +46,9 @@ input:focus { border-color: #ad96ff; box-shadow: 0 0 0 3px #9d82f52e; }
 form button, .secondary-button { border: 0; border-radius: 9px; color: #21193d; background: linear-gradient(135deg,#d8cdfc,#b89fff); font-size: 12px; font-weight: 700; transition: transform .18s, filter .18s; }
 form button { padding: 11px 13px; margin-top: 4px; }
 button:hover { transform: translateY(-1px); filter: brightness(1.06); }
+button:disabled { cursor: wait; opacity: .65; transform: none; }
 button span { float: right; font-size: 16px; line-height: 11px; }
+.form-error { margin: 12px 0 0; color: #ffb1bf; font-size: 11px; line-height: 1.45; }
 .tip { margin: 20px 0 0; color: #a79fbe; font-size: 11px; line-height: 1.5; }
 .tip b { color: #d0c5f6; }
 
@@ -59,6 +61,8 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 .state-badge.active { color: #e4d7ff; border-color: #c4a8ff5c; background: #b799fd12; }
 .state-badge.locked { color: #a7a0bb; border-color: #a7a0bb3d; background: #a7a0bb0f; }
 .secondary-button { width: 100%; padding: 11px 13px; margin-top: 20px; color: #e6defd; border: 1px solid rgba(228,216,255,.17); background: rgba(255,255,255,.06); }
+.step-form { margin-top: 18px; }
+.step-form button { padding: 10px 12px; margin-top: 2px; }
 .map-hint { position: absolute; z-index: 5; bottom: 28px; right: 33px; margin: 0; color: #aaa0cb; font: 10px 'DM Mono', monospace; pointer-events: auto; }
 
 .quest-edge .react-flow__edge-path { stroke-linecap: round; }

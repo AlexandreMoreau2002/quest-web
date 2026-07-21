@@ -40,8 +40,12 @@ function MapMomentum({ surface }: { surface: RefObject<HTMLDivElement | null> })
 }
 
 export function QuestMap() {
-  const { graph, selectedId, selectedNode, selectNode, createQuest, source, spaceName } = useQuestMap();
+  const { graph, selectedId, selectedNode, selectNode, createQuest, createStep, source, error, spaceName } = useQuestMap();
   const [title, setTitle] = useState('');
+  const [firstStepTitle, setFirstStepTitle] = useState('');
+  const [stepTitle, setStepTitle] = useState('');
+  const [isCreatingQuest, setIsCreatingQuest] = useState(false);
+  const [isCreatingStep, setIsCreatingStep] = useState(false);
   const surface = useRef<HTMLDivElement>(null);
 
   const nodes: QuestFlowNode[] = graph.nodes.map((node) => ({
@@ -56,10 +60,23 @@ export function QuestMap() {
     style: { stroke: '#9b89ec', strokeWidth: 2, strokeDasharray: '7 9', opacity: 0.8 },
   }));
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    createQuest(title);
-    setTitle('');
+    setIsCreatingQuest(true);
+    const created = await createQuest(title, firstStepTitle);
+    setIsCreatingQuest(false);
+    if (created) {
+      setTitle('');
+      setFirstStepTitle('');
+    }
+  }
+
+  async function submitStep(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsCreatingStep(true);
+    const created = await createStep(stepTitle);
+    setIsCreatingStep(false);
+    if (created) setStepTitle('');
   }
 
   return (
@@ -103,8 +120,11 @@ export function QuestMap() {
         <form onSubmit={submit}>
           <label htmlFor="quest-title">Nom de la quête</label>
           <input id="quest-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ex. Apprendre l’italien" />
-          <button type="submit">Créer la quête <span>→</span></button>
+          <label htmlFor="first-step-title">Première étape</label>
+          <input id="first-step-title" value={firstStepTitle} onChange={(event) => setFirstStepTitle(event.target.value)} placeholder="Ex. Choisir une méthode" />
+          <button type="submit" disabled={isCreatingQuest}>{isCreatingQuest ? 'Création…' : 'Créer la quête'} <span>→</span></button>
         </form>
+        {error && <p className="form-error" role="alert">{error}</p>}
         <p className="tip"><b>Astuce</b> — fais glisser la carte, pince pour zoomer.</p>
       </aside>
 
@@ -117,7 +137,11 @@ export function QuestMap() {
           </div>
           <span className={`state-badge ${selectedNode.data.status}`}>{selectedNode.data.status === 'done' ? 'Accompli' : selectedNode.data.status === 'active' ? 'En cours' : 'Verrouillé'}</span>
           <p className="panel-copy">Cette étape donne une direction concrète à ta progression. Choisis le prochain geste, puis avance.</p>
-          <button className="secondary-button">Voir les détails <span>↗</span></button>
+          <form className="step-form" onSubmit={submitStep}>
+            <label htmlFor="step-title">Ajouter une étape à « {selectedNode.data.questTitle} »</label>
+            <input id="step-title" value={stepTitle} onChange={(event) => setStepTitle(event.target.value)} placeholder="Ex. Préparer le premier test" />
+            <button type="submit" disabled={isCreatingStep}>{isCreatingStep ? 'Création…' : 'Ajouter l’étape'} <span>→</span></button>
+          </form>
         </aside>
       )}
 
