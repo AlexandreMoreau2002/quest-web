@@ -2,7 +2,6 @@
 
 import { useRef, useState, type FormEvent, type RefObject } from 'react';
 import {
-  Background,
   Controls,
   Handle,
   Position,
@@ -23,10 +22,12 @@ function QuestNode({ data, selected }: NodeProps<QuestFlowNode>) {
   return (
     <div className={`quest-node status-${data.status} ${selected ? 'is-selected' : ''}`} style={{ '--quest-color': data.color } as React.CSSProperties}>
       <Handle type="target" position={Position.Left} className="node-handle" />
-      <span className="node-orb" aria-hidden="true" />
-      <span className="node-status">{data.status === 'done' ? 'Accompli' : data.status === 'active' ? 'En cours' : 'À venir'}</span>
-      <strong>{data.title}</strong>
-      <small>{data.questTitle}</small>
+      <span className="node-core" aria-hidden="true"><span className="node-orb" /></span>
+      <span className="node-copy">
+        <strong>{data.title}</strong>
+        <span className="node-status">{data.status === 'done' ? 'Accompli' : data.status === 'active' ? 'En cours' : 'À venir'}</span>
+        <small>{data.questTitle}</small>
+      </span>
       <Handle type="source" position={Position.Right} className="node-handle" />
     </div>
   );
@@ -51,8 +52,9 @@ export function QuestMap() {
   }));
   const edges: Edge[] = graph.edges.map((edge) => ({
     ...edge,
-    animated: true,
-    style: { stroke: '#8b7ad7', strokeWidth: 2, opacity: 0.72 },
+    type: 'straight',
+    className: 'quest-edge',
+    style: { stroke: '#9b89ec', strokeWidth: 2, strokeDasharray: '7 9', opacity: 0.8 },
   }));
 
   function submit(event: FormEvent<HTMLFormElement>) {
@@ -70,17 +72,17 @@ export function QuestMap() {
         nodeTypes={nodeTypes}
         onNodeClick={(_, node) => selectNode(node.id)}
         fitView
-        fitViewOptions={{ padding: 0.3 }}
+        fitViewOptions={{ padding: 0.42 }}
         minZoom={0.3}
         maxZoom={1.8}
         panOnDrag
         panOnScroll
         zoomOnScroll
         zoomOnPinch
+        nodesDraggable={false}
         proOptions={{ hideAttribution: true }}
       >
         <MapMomentum surface={surface} />
-        <Background color="#9b8ae2" gap={32} size={1} className="map-grid" />
         <Controls showInteractive={false} />
       </ReactFlow>
 

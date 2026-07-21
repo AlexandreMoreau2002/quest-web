@@ -3,7 +3,8 @@
 ## Portée livrée
 
 - Application Next.js TypeScript avec carte React Flow en plein viewport.
-- Fond dégradé étoilé, création locale de quête à gauche et inspecteur de sélection à droite.
+- Fond bleu indigo à nébuleuses et étoiles SVG déterministes non répétitives, création locale de quête à gauche et inspecteur de sélection à droite.
+- Layout d'atlas organique : la première étape active est au foyer, les chaînes de quêtes rayonnent en branches diagonales et leurs chemins pointillés restent attachés aux nœuds diamant/orbe.
 - Déplacement, zoom molette/pinch/contrôles et inertie amortie après un drag rapide.
 - Client API configurable par `NEXT_PUBLIC_API_URL`, lisant `GET /spaces` puis `GET /spaces/:spaceId/map`.
 - Atlas local de secours quand l’API est indisponible.
