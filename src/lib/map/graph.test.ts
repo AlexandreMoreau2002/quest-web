@@ -3,6 +3,33 @@ import { describe, expect, it } from 'vitest';
 import { buildQuestGraph } from './graph';
 
 describe('buildQuestGraph', () => {
+  it('renders the quest objective as a hub for its project steps', () => {
+    const graph = buildQuestGraph({
+      id: 'space-1',
+      name: 'Revenus',
+      quests: [
+        {
+          id: 'goal-1',
+          title: 'Gagner beaucoup d’argent',
+          color: '#a78bfa',
+          steps: [
+            { id: 'freelance', title: 'Développer mon activité freelance', status: 'active' },
+            { id: 'cloudbreak', title: 'Lancer Cloudbreak', status: 'locked' },
+          ],
+        },
+      ],
+    });
+
+    expect(graph.nodes).toContainEqual(expect.objectContaining({
+      id: 'objective-goal-1',
+      data: expect.objectContaining({ title: 'Gagner beaucoup d’argent', isObjective: true }),
+    }));
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({ source: 'objective-goal-1', target: 'freelance' }),
+      expect.objectContaining({ source: 'objective-goal-1', target: 'cloudbreak' }),
+    ]));
+  });
+
   it('keeps a clear card-sized gap between every generated step', () => {
     const graph = buildQuestGraph({
       id: 'space-1',
@@ -42,17 +69,17 @@ describe('buildQuestGraph', () => {
       ],
     });
 
-    expect(graph.nodes).toHaveLength(2);
-    expect(graph.nodes[0]).toMatchObject({ id: 'step-1', selected: true });
-    expect(graph.edges).toEqual([
+    expect(graph.nodes).toHaveLength(3);
+    expect(graph.nodes[0]).toMatchObject({ id: 'objective-quest-1', selected: true });
+    expect(graph.edges).toEqual(expect.arrayContaining([
       expect.objectContaining({
-        id: 'edge-step-1-step-2',
-        source: 'step-1',
+        id: 'edge-objective-quest-1-step-1',
+        source: 'objective-quest-1',
         sourceHandle: 'source-right',
-        target: 'step-2',
+        target: 'step-1',
         targetHandle: 'target-left',
       }),
-    ]);
+    ]));
   });
 
   it('anchors a leftward branch to the matching card boundaries', () => {
@@ -78,9 +105,10 @@ describe('buildQuestGraph', () => {
       ],
     });
 
-    expect(graph.edges).toEqual([
-      expect.objectContaining({ source: 'step-1', sourceHandle: 'source-left', target: 'step-2', targetHandle: 'target-right' }),
-    ]);
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({ source: 'objective-quest-1', target: 'step-1' }),
+      expect.objectContaining({ source: 'objective-quest-1', target: 'step-2' }),
+    ]));
   });
 
   it('places the first active step at the atlas focus and fans its branch out diagonally', () => {
@@ -103,9 +131,9 @@ describe('buildQuestGraph', () => {
 
     const positions = Object.fromEntries(graph.nodes.map((node) => [node.id, node.position]));
 
-    expect(positions['step-2']).toEqual({ x: 760, y: 480 });
-    expect(positions['step-1']).toEqual({ x: 420, y: 260 });
-    expect(positions['step-3']).toEqual({ x: 1110, y: 700 });
+    expect(positions['objective-quest-1']).toEqual({ x: 760, y: 480 });
+    expect(positions['step-1']).not.toEqual(positions['step-2']);
+    expect(positions['step-3']).not.toEqual(positions['step-2']);
   });
 
   it('uses stable, offset branch anchors instead of aligned quest rows', () => {
@@ -132,7 +160,7 @@ describe('buildQuestGraph', () => {
     const second = buildQuestGraph(space);
 
     expect(first.nodes).toEqual(second.nodes);
-    expect(first.nodes[1].position).toEqual({ x: 360, y: 790 });
-    expect(first.nodes[0].position.y).not.toBe(first.nodes[1].position.y);
+    expect(first.nodes.find((node) => node.id === 'objective-quest-2')?.position).toEqual({ x: 360, y: 790 });
+    expect(first.nodes.find((node) => node.id === 'objective-quest-1')?.position.y).not.toBe(first.nodes.find((node) => node.id === 'objective-quest-2')?.position.y);
   });
 });

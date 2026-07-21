@@ -12,6 +12,7 @@ export function useQuestMap() {
   const [space, setSpace] = useState<QuestSpace>(fallbackSpace);
   const [source, setSource] = useState<'local' | 'api'>('local');
   const [selectedId, setSelectedId] = useState(fallbackSpace.quests[0]?.steps[0]?.id ?? '');
+  const [selectedQuestId, setSelectedQuestId] = useState(fallbackSpace.quests[0]?.id ?? '');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -23,6 +24,7 @@ export function useQuestMap() {
         if (!active) return;
         setSpace(apiSpace);
         setSelectedId(apiSpace.quests[0]?.steps[0]?.id ?? '');
+        setSelectedQuestId(apiSpace.quests[0]?.id ?? '');
         setSource('api');
       })
       .catch(() => {
@@ -34,7 +36,11 @@ export function useQuestMap() {
     };
   }, []);
 
-  const graph = useMemo(() => buildQuestGraph(space), [space]);
+  const visibleSpace = useMemo(() => ({
+    ...space,
+    quests: space.quests.filter((quest) => quest.id === selectedQuestId),
+  }), [selectedQuestId, space]);
+  const graph = useMemo(() => buildQuestGraph(visibleSpace), [visibleSpace]);
   const selectedNode = graph.nodes.find((node) => node.id === selectedId) ?? graph.nodes[0];
 
   const createQuest = useCallback(async (title: string, firstStepTitle: string): Promise<boolean> => {
@@ -50,6 +56,7 @@ export function useQuestMap() {
         });
         setSpace((current) => ({ ...current, quests: [...current.quests, newQuest] }));
         setSelectedId(newQuest.steps[0]?.id ?? '');
+        setSelectedQuestId(newQuest.id);
         setError(null);
         return true;
       } catch {
@@ -68,6 +75,7 @@ export function useQuestMap() {
 
     setSpace((current) => ({ ...current, quests: [...current.quests, newQuest] }));
     setSelectedId(newQuest.steps[0].id);
+    setSelectedQuestId(newQuest.id);
     setError(null);
     return true;
   }, [source, space.id, space.quests.length]);
@@ -117,6 +125,12 @@ export function useQuestMap() {
     selectedId,
     selectedNode,
     selectNode: setSelectedId,
+    selectedQuestId,
+    selectQuest: (questId: string) => {
+      setSelectedQuestId(questId);
+      setSelectedId(`objective-${questId}`);
+    },
+    objectives: space.quests.map((quest) => ({ id: quest.id, title: quest.title })),
     createQuest,
     createStep,
     source,

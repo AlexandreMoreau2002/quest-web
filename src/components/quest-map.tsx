@@ -20,12 +20,12 @@ type QuestFlowNode = Node<QuestGraphNode['data']>;
 
 function QuestNode({ data, selected }: NodeProps<QuestFlowNode>) {
   return (
-    <div className={`quest-node status-${data.status} ${selected ? 'is-selected' : ''}`} style={{ '--quest-color': data.color } as React.CSSProperties}>
+    <div className={`quest-node status-${data.status} ${data.isObjective ? 'is-objective' : ''} ${selected ? 'is-selected' : ''}`} style={{ '--quest-color': data.color } as React.CSSProperties}>
       <Handle id="target-left" type="target" position={Position.Left} className="node-handle" />
       <Handle id="source-left" type="source" position={Position.Left} className="node-handle" />
-      <span className="node-status">{data.status === 'done' ? 'Accompli' : data.status === 'active' ? 'En cours' : 'À venir'}</span>
+      <span className="node-status">{data.isObjective ? 'Objectif' : data.status === 'done' ? 'Accompli' : data.status === 'active' ? 'En cours' : 'À venir'}</span>
       <strong>{data.title}</strong>
-      <small className="node-description">{data.questTitle}</small>
+      <small className="node-description">{data.isObjective ? `Espace · ${data.questTitle}` : data.questTitle}</small>
       <Handle id="target-right" type="target" position={Position.Right} className="node-handle" />
       <Handle id="source-right" type="source" position={Position.Right} className="node-handle" />
     </div>
@@ -40,7 +40,10 @@ function MapMomentum({ surface }: { surface: RefObject<HTMLDivElement | null> })
 }
 
 export function QuestMap() {
-  const { graph, selectedId, selectedNode, selectNode, createQuest, createStep, source, error, spaceName } = useQuestMap();
+  const {
+    graph, selectedId, selectedNode, selectNode, selectedQuestId, selectQuest, objectives,
+    createQuest, createStep, source, error, spaceName,
+  } = useQuestMap();
   const [title, setTitle] = useState('');
   const [firstStepTitle, setFirstStepTitle] = useState('');
   const [stepTitle, setStepTitle] = useState('');
@@ -88,8 +91,8 @@ export function QuestMap() {
         nodeTypes={nodeTypes}
         onNodeClick={(_, node) => selectNode(node.id)}
         fitView
-        fitViewOptions={{ padding: 0.42 }}
-        minZoom={0.3}
+        fitViewOptions={{ padding: 0.18 }}
+        minZoom={0.5}
         maxZoom={1.8}
         panOnDrag
         panOnScroll
@@ -114,15 +117,19 @@ export function QuestMap() {
       </header>
 
       <aside className="creation-panel glass-panel" data-map-overlay>
-        <p className="eyebrow">NOUVELLE QUÊTE</p>
+        <p className="eyebrow">OBJECTIF AFFICHÉ</p>
         <h2>Choisis un cap.</h2>
-        <p className="panel-copy">Ajoute une nouvelle région à ton atlas personnel.</p>
+        <p className="panel-copy">Explore un objectif à la fois, puis ajoute ses étapes sur la carte.</p>
+        <label htmlFor="objective-selector">Objectif</label>
+        <select id="objective-selector" value={selectedQuestId} onChange={(event) => selectQuest(event.target.value)}>
+          {objectives.map((objective) => <option key={objective.id} value={objective.id}>{objective.title}</option>)}
+        </select>
         <form onSubmit={submit}>
-          <label htmlFor="quest-title">Nom de la quête</label>
+          <label htmlFor="quest-title">Nouvel objectif</label>
           <input id="quest-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ex. Apprendre l’italien" />
-          <label htmlFor="first-step-title">Première étape</label>
+          <label htmlFor="first-step-title">Premier projet ou étape</label>
           <input id="first-step-title" value={firstStepTitle} onChange={(event) => setFirstStepTitle(event.target.value)} placeholder="Ex. Choisir une méthode" />
-          <button type="submit" disabled={isCreatingQuest}>{isCreatingQuest ? 'Création…' : 'Créer la quête'} <span>→</span></button>
+          <button type="submit" disabled={isCreatingQuest}>{isCreatingQuest ? 'Création…' : 'Créer l’objectif'} <span>→</span></button>
         </form>
         {error && <p className="form-error" role="alert">{error}</p>}
         <p className="tip"><b>Astuce</b> — fais glisser la carte, pince pour zoomer.</p>

@@ -17,6 +17,7 @@ export interface QuestNodeData extends QuestStep, Record<string, unknown> {
   questId: string;
   questTitle: string;
   color: string;
+  isObjective?: boolean;
 }
 
 export interface QuestSpace {
@@ -108,6 +109,16 @@ function findOpenPosition(position: Point, placedNodes: QuestGraphNode[]): Point
   return position;
 }
 
+function projectPosition(anchor: Point, direction: Point, index: number, total: number): Point {
+  const baseAngle = Math.atan2(direction.y, direction.x);
+  const spread = (index - (total - 1) / 2) * 0.78;
+  const radius = 410;
+  return {
+    x: Math.round(anchor.x + Math.cos(baseAngle + spread) * radius),
+    y: Math.round(anchor.y + Math.sin(baseAngle + spread) * radius),
+  };
+}
+
 export function buildQuestGraph(space: QuestSpace): {
   nodes: QuestGraphNode[];
   edges: QuestGraphEdge[];
@@ -117,21 +128,30 @@ export function buildQuestGraph(space: QuestSpace): {
   const focusQuestIndex = Math.max(space.quests.findIndex((quest) => quest.steps.some((step) => step.status === 'active')), 0);
 
   space.quests.forEach((quest, questIndex) => {
-    const activeStepIndex = Math.max(quest.steps.findIndex((step) => step.status === 'active'), 0);
     const layout = branchLayout(branchSlot(questIndex, focusQuestIndex));
     const anchor = {
       x: ATLAS_FOCUS.x + layout.offset.x,
       y: ATLAS_FOCUS.y + layout.offset.y,
     };
+    const color = quest.color ?? QUEST_COLORS[questIndex % QUEST_COLORS.length]!;
+    const objectiveNode: QuestGraphNode = {
+      id: `objective-${quest.id}`,
+      position: findOpenPosition(anchor, nodes),
+      selected: nodes.length === 0,
+      data: {
+        id: `objective-${quest.id}`,
+        title: quest.title,
+        status: 'active',
+        questId: quest.id,
+        questTitle: space.name,
+        color,
+        isObjective: true,
+      },
+    };
+    nodes.push(objectiveNode);
 
     quest.steps.forEach((step, stepIndex) => {
-      const distance = stepIndex - activeStepIndex;
-      const position = distance === 0
-        ? anchor
-        : {
-            x: anchor.x + layout.direction.x * distance + (distance < 0 ? 10 : 0),
-            y: anchor.y + layout.direction.y * distance,
-          };
+      const position = projectPosition(objectiveNode.position, layout.direction, stepIndex, quest.steps.length);
 
       const node: QuestGraphNode = {
         id: step.id,
@@ -141,7 +161,7 @@ export function buildQuestGraph(space: QuestSpace): {
           ...step,
           questId: quest.id,
           questTitle: quest.title,
-          color: quest.color ?? QUEST_COLORS[questIndex % QUEST_COLORS.length]!,
+          color,
         },
       };
       nodes.push(node);
@@ -149,8 +169,8 @@ export function buildQuestGraph(space: QuestSpace): {
   });
 
   space.quests.forEach((quest) => {
-    quest.steps.slice(1).forEach((step, index) => {
-      const previousNode = nodes.find((node) => node.id === quest.steps[index]?.id);
+    quest.steps.forEach((step) => {
+      const previousNode = nodes.find((node) => node.id === `objective-${quest.id}`);
       const node = nodes.find((candidate) => candidate.id === step.id);
       if (!previousNode || !node) return;
 
