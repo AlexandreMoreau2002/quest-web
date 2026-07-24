@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, type FormEvent, type RefObject } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react';
 import {
   Controls,
   Handle,
@@ -14,8 +14,24 @@ import '@xyflow/react/dist/style.css';
 
 import { useQuestMap } from '@/hooks/use-quest-map';
 import { useMomentumPan } from '@/hooks/use-momentum-pan';
+import { useBranchDrag } from '@/hooks/use-branch-drag';
 import { QuestEdge } from '@/components/quest-edge';
+import { NodeAnchor } from '@/components/node-anchor';
+import { BranchMenu } from '@/components/branch-menu';
+import { intersectRectangle, type Rect } from '@/lib/map/edge-geometry';
 import type { QuestGraphNode } from '@/lib/map/graph';
+
+const OBJECTIVE_SIZE = { width: 272, height: 132 };
+const STEP_SIZE = { width: 224, height: 100 };
+
+function graphNodeRect(node: QuestGraphNode): Rect {
+  const size = node.data.isObjective ? OBJECTIVE_SIZE : STEP_SIZE;
+  return { x: node.position.x, y: node.position.y, width: size.width, height: size.height };
+}
+
+function rectCenter(rect: Rect) {
+  return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 };
+}
 
 type QuestFlowNode = Node<QuestGraphNode['data']>;
 
@@ -56,14 +72,46 @@ function MapMomentum({ surface }: { surface: RefObject<HTMLDivElement | null> })
 export function QuestMap() {
   const {
     graph, selectedId, selectedNode, selectNode, selectedQuestId, selectQuest, objectives,
-    createQuest, createStep, source, error, spaceName,
+    createQuest, createStep, createLinkedGoal, linkExisting, source, error, spaceName,
   } = useQuestMap();
   const [title, setTitle] = useState('');
   const [firstStepTitle, setFirstStepTitle] = useState('');
   const [stepTitle, setStepTitle] = useState('');
   const [isCreatingQuest, setIsCreatingQuest] = useState(false);
   const [isCreatingStep, setIsCreatingStep] = useState(false);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const branchDrag = useBranchDrag();
   const surface = useRef<HTMLDivElement>(null);
+
+  const hoveredNode = graph.nodes.find((node) => node.id === hoveredId) ?? null;
+  let anchorPoint: { x: number; y: number } | null = null;
+  if (hoveredNode) {
+    const hoveredRect = graphNodeRect(hoveredNode);
+    const hoveredCenter = rectCenter(hoveredRect);
+    const parentEdge = graph.edges.find((edge) => edge.target === hoveredNode.id);
+    const parentNode = parentEdge ? graph.nodes.find((node) => node.id === parentEdge.source) : undefined;
+    if (parentNode) {
+      const parentCenter = rectCenter(graphNodeRect(parentNode));
+      const mirrored = { x: 2 * hoveredCenter.x - parentCenter.x, y: 2 * hoveredCenter.y - parentCenter.y };
+      anchorPoint = intersectRectangle(hoveredRect, mirrored);
+    } else {
+      anchorPoint = intersectRectangle(hoveredRect, { x: hoveredCenter.x + 1000, y: hoveredCenter.y });
+    }
+  }
+
+  useEffect(() => {
+    if (branchDrag.state.status !== 'dragging') return;
+    const handleMove = (event: PointerEvent) => branchDrag.updateDrag({ x: event.clientX, y: event.clientY });
+    const handleUp = () => branchDrag.endDrag();
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+    };
+  }, [branchDrag.state.status, branchDrag]);
+
+  const dragState = branchDrag.state;
 
   const nodes: QuestFlowNode[] = graph.nodes.map((node) => ({
     ...node,
@@ -104,6 +152,38 @@ export function QuestMap() {
       <span className="q-star" aria-hidden="true" style={{ top: '32%', left: '86%', animationDelay: '1.6s' }} />
       <span className="q-star" aria-hidden="true" style={{ top: '82%', left: '12%', animationDelay: '2.3s' }} />
 
+      {hoveredNode && anchorPoint && (
+        <NodeAnchor
+          x={anchorPoint.x}
+          y={anchorPoint.y}
+          variant="grow"
+          label={`Ajouter une branche depuis ${hoveredNode.data.title}`}
+          onActivate={() => branchDrag.startDrag(hoveredNode.id, anchorPoint!)}
+        />
+      )}
+
+      {dragState.status === 'menu-open' && (
+        <BranchMenu
+          x={dragState.menuPosition.x}
+          y={dragState.menuPosition.y}
+          existingOptions={graph.nodes.filter((node) => node.id !== dragState.sourceNodeId).map((node) => ({ id: node.id, title: node.data.title }))}
+          onChoose={async (choice) => {
+            const sourceNodeId = dragState.sourceNodeId;
+            if (choice.kind === 'step') {
+              selectNode(sourceNodeId);
+              await createStep(choice.title);
+            }
+            if (choice.kind === 'linked-goal') {
+              selectNode(sourceNodeId);
+              await createLinkedGoal(choice.title);
+            }
+            if (choice.kind === 'existing') await linkExisting(choice.nodeId, sourceNodeId);
+            branchDrag.reset();
+          }}
+          onDismiss={() => branchDrag.reset()}
+        />
+      )}
+
       {objectives.length === 0 && (
         <div className="empty-state glass-panel" data-map-overlay>
           <p className="eyebrow">CARTE VIDE</p>
@@ -119,6 +199,8 @@ export function QuestMap() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={(_, node) => selectNode(node.id)}
+        onNodeMouseEnter={(_, node) => setHoveredId(node.id)}
+        onNodeMouseLeave={() => setHoveredId(null)}
         fitView
         fitViewOptions={{ padding: 0.18 }}
         minZoom={0.5}

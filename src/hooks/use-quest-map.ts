@@ -120,6 +120,27 @@ export function useQuestMap() {
     return true;
   }, [selectedNode, source, space.quests]);
 
+  const reparentStep = useCallback(async (stepId: string, newParentQuestId: string): Promise<boolean> => {
+    if (source !== 'api') {
+      setError('Le re-parentage nécessite l’API. Lance l’API pour utiliser cette fonctionnalité.');
+      return false;
+    }
+    try {
+      await new QuestApiClient(API_URL).updateStep(stepId, { parentStepId: newParentQuestId });
+      const refreshed = await new QuestApiClient(API_URL).loadFirstMap();
+      setSpace(refreshed);
+      setError(null);
+      return true;
+    } catch {
+      setError('Le re-parentage a échoué. Réessaie dans un instant.');
+      return false;
+    }
+  }, [source]);
+
+  const createLinkedGoal = useCallback((title: string) => createQuest(title, 'Première étape'), [createQuest]);
+
+  const linkExisting = useCallback((existingNodeId: string, newParentNodeId: string) => reparentStep(existingNodeId, newParentNodeId), [reparentStep]);
+
   return {
     graph,
     selectedId,
@@ -133,6 +154,9 @@ export function useQuestMap() {
     objectives: space.quests.map((quest) => ({ id: quest.id, title: quest.title })),
     createQuest,
     createStep,
+    reparentStep,
+    createLinkedGoal,
+    linkExisting,
     source,
     error,
     spaceName: space.name,
