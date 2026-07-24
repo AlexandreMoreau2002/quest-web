@@ -147,3 +147,8 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 .node-anchor:hover, .node-anchor:focus-visible { box-shadow: 0 0 0 4px rgba(173, 150, 255, .18); }
 .node-anchor:focus-visible { outline: 2px solid var(--q-accent); outline-offset: 2px; }
 .node-anchor.node-anchor--grow { background: var(--q-cta-bg); border: none; color: var(--q-cta-text); font-size: 13px; font-weight: 700; }
+
+.branch-menu { position: absolute; z-index: 7; min-width: 220px; padding: 8px; }
+.branch-menu button { display: block; width: 100%; padding: 10px 12px; margin: 0; text-align: left; border-radius: 8px; background: transparent; color: var(--q-text); font-size: 13px; font-weight: 500; }
+.branch-menu button:hover, .branch-menu button:focus-visible { background: rgba(255,255,255,.08); }
+.branch-menu input { margin-top: 6px; }
