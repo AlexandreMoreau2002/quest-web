@@ -17,6 +17,7 @@ import '@xyflow/react/dist/style.css';
 import { useQuestMap } from '@/hooks/use-quest-map';
 import { useMomentumPan } from '@/hooks/use-momentum-pan';
 import { useBranchDrag } from '@/hooks/use-branch-drag';
+import { useMediaQuery } from '@/hooks/use-media-query';
 import { useTheme, THEME_CLASS } from '@/hooks/use-theme';
 import { QuestEdge } from '@/components/quest-edge';
 import { NodeAnchor } from '@/components/node-anchor';
@@ -96,6 +97,8 @@ function QuestMapInner() {
   const branchDrag = useBranchDrag();
   const surface = useRef<HTMLDivElement>(null);
   const { themeId, setThemeId } = useTheme();
+  const isMobile = useMediaQuery('(max-width: 760px)');
+  const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
 
   const hoveredNode = graph.nodes.find((node) => node.id === hoveredId) ?? null;
   let anchorPoint: { x: number; y: number } | null = null;
@@ -173,6 +176,27 @@ function QuestMapInner() {
     setIsCreatingStep(false);
     if (created) setStepTitle('');
   }
+
+  const creationPanelContent = (
+    <>
+      <p className="eyebrow">OBJECTIF AFFICHÉ</p>
+      <h2>Choisis un cap.</h2>
+      <p className="panel-copy">Explore un objectif à la fois, puis ajoute ses étapes sur la carte.</p>
+      <label htmlFor="objective-selector">Objectif</label>
+      <select id="objective-selector" value={selectedQuestId} onChange={(event) => selectQuest(event.target.value)}>
+        {objectives.map((objective) => <option key={objective.id} value={objective.id}>{objective.title}</option>)}
+      </select>
+      <form onSubmit={submit}>
+        <label htmlFor="quest-title">Nouvel objectif</label>
+        <input id="quest-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ex. Apprendre l’italien" />
+        <label htmlFor="first-step-title">Premier projet ou étape</label>
+        <input id="first-step-title" value={firstStepTitle} onChange={(event) => setFirstStepTitle(event.target.value)} placeholder="Ex. Choisir une méthode" />
+        <button type="submit" disabled={isCreatingQuest}>{isCreatingQuest ? 'Création…' : 'Créer l’objectif'} <span>→</span></button>
+      </form>
+      {error && <p className="form-error" role="alert">{error}</p>}
+      <p className="tip"><b>Astuce</b> — fais glisser la carte, pince pour zoomer.</p>
+    </>
+  );
 
   return (
     <main className={`quest-shell ${THEME_CLASS[themeId]} atlas-calm`} ref={surface} aria-label="Carte de quête">
@@ -258,41 +282,55 @@ function QuestMapInner() {
         <ThemeSwitcher activeTheme={themeId} onSelect={setThemeId} />
       </header>
 
-      <aside className="creation-panel glass-panel" data-map-overlay>
-        <p className="eyebrow">OBJECTIF AFFICHÉ</p>
-        <h2>Choisis un cap.</h2>
-        <p className="panel-copy">Explore un objectif à la fois, puis ajoute ses étapes sur la carte.</p>
-        <label htmlFor="objective-selector">Objectif</label>
-        <select id="objective-selector" value={selectedQuestId} onChange={(event) => selectQuest(event.target.value)}>
-          {objectives.map((objective) => <option key={objective.id} value={objective.id}>{objective.title}</option>)}
-        </select>
-        <form onSubmit={submit}>
-          <label htmlFor="quest-title">Nouvel objectif</label>
-          <input id="quest-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ex. Apprendre l’italien" />
-          <label htmlFor="first-step-title">Premier projet ou étape</label>
-          <input id="first-step-title" value={firstStepTitle} onChange={(event) => setFirstStepTitle(event.target.value)} placeholder="Ex. Choisir une méthode" />
-          <button type="submit" disabled={isCreatingQuest}>{isCreatingQuest ? 'Création…' : 'Créer l’objectif'} <span>→</span></button>
-        </form>
-        {error && <p className="form-error" role="alert">{error}</p>}
-        <p className="tip"><b>Astuce</b> — fais glisser la carte, pince pour zoomer.</p>
-      </aside>
-
-      {selectedNode && (
-        <aside className="inspector glass-panel" data-map-overlay>
-          <p className="eyebrow" style={{ color: selectedNode.data.color }}>{selectedNode.data.questTitle}</p>
-          <div className="inspector-title">
-            <span className="inspector-orb" style={{ background: selectedNode.data.color }} />
-            <h2>{selectedNode.data.title}</h2>
-          </div>
-          <span className={`state-badge ${selectedNode.data.status}`}>{selectedNode.data.status === 'done' ? 'Accompli' : selectedNode.data.status === 'active' ? 'En cours' : 'Verrouillé'}</span>
-          <p className="panel-copy">Cette étape donne une direction concrète à ta progression. Choisis le prochain geste, puis avance.</p>
-          <form className="step-form" onSubmit={submitStep}>
-            <label htmlFor="step-title">Ajouter une étape à « {selectedNode.data.questTitle} »</label>
-            <input id="step-title" value={stepTitle} onChange={(event) => setStepTitle(event.target.value)} placeholder="Ex. Préparer le premier test" />
-            <button type="submit" disabled={isCreatingStep}>{isCreatingStep ? 'Création…' : 'Ajouter l’étape'} <span>→</span></button>
-          </form>
+      {isMobile ? (
+        <>
+          <button type="button" className="fab" aria-label="Créer un objectif" onClick={() => setIsCreatePanelOpen(true)}>+</button>
+          {isCreatePanelOpen && (
+            <div className="fab-sheet" onClick={() => setIsCreatePanelOpen(false)}>
+              <div className="fab-sheet-panel" onClick={(event) => event.stopPropagation()}>
+                <aside className="creation-panel glass-panel bottom-sheet" data-map-overlay>
+                  <div className="bottom-sheet-handle" />
+                  {creationPanelContent}
+                </aside>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <aside className="creation-panel glass-panel" data-map-overlay>
+          {creationPanelContent}
         </aside>
       )}
+
+      {selectedNode && (() => {
+        const node = selectedNode;
+        const inspectorInnerContent = (
+          <>
+            <p className="eyebrow" style={{ color: node.data.color }}>{node.data.questTitle}</p>
+            <div className="inspector-title">
+              <span className="inspector-orb" style={{ background: node.data.color }} />
+              <h2>{node.data.title}</h2>
+            </div>
+            <span className={`state-badge ${node.data.status}`}>{node.data.status === 'done' ? 'Accompli' : node.data.status === 'active' ? 'En cours' : 'Verrouillé'}</span>
+            <p className="panel-copy">Cette étape donne une direction concrète à ta progression. Choisis le prochain geste, puis avance.</p>
+            <form className="step-form" onSubmit={submitStep}>
+              <label htmlFor="step-title">Ajouter une étape à « {node.data.questTitle} »</label>
+              <input id="step-title" value={stepTitle} onChange={(event) => setStepTitle(event.target.value)} placeholder="Ex. Préparer le premier test" />
+              <button type="submit" disabled={isCreatingStep}>{isCreatingStep ? 'Création…' : 'Ajouter l’étape'} <span>→</span></button>
+            </form>
+          </>
+        );
+        return isMobile ? (
+          <aside className="inspector glass-panel bottom-sheet" data-map-overlay>
+            <div className="bottom-sheet-handle" />
+            {inspectorInnerContent}
+          </aside>
+        ) : (
+          <aside className="inspector glass-panel" data-map-overlay>
+            {inspectorInnerContent}
+          </aside>
+        );
+      })()}
 
       <p className="map-hint" data-map-overlay>Carte vivante · clique une étape pour l’explorer</p>
     </main>
