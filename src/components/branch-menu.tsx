@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export type BranchMenuChoice =
   | { kind: 'linked-goal'; title: string }
@@ -24,17 +24,32 @@ export function BranchMenu({ x, y, existingOptions, onChoose, onDismiss }: Branc
   const [mode, setMode] = useState<'menu' | 'linked-goal' | 'step' | 'existing'>('menu');
   const [title, setTitle] = useState('');
   const [search, setSearch] = useState('');
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Click-outside-to-dismiss. 'pointerdown' (not 'click') so it reacts as
+  // soon as the user presses down elsewhere, matching how the menu itself
+  // opened (on a pointerdown/keydown, not a full click). Attached in an
+  // effect, which only runs after the gesture that opened the menu has
+  // already finished, so it can't immediately dismiss itself.
+  useEffect(() => {
+    const handlePointerDown = (event: PointerEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        onDismiss();
+      }
+    };
+    document.addEventListener('pointerdown', handlePointerDown);
+    return () => document.removeEventListener('pointerdown', handlePointerDown);
+  }, [onDismiss]);
 
   const filteredOptions = existingOptions.filter((option) => option.title.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="branch-menu glass-panel" style={{ left: x, top: y }} data-map-overlay role="menu">
+    <div className="branch-menu glass-panel" style={{ left: x, top: y }} data-map-overlay role="menu" ref={menuRef}>
       {mode === 'menu' && (
         <>
           <button type="button" onClick={() => setMode('linked-goal')}>Ajouter un objectif lié</button>
           <button type="button" onClick={() => setMode('step')}>Ajouter une étape</button>
           <button type="button" onClick={() => setMode('existing')}>Lier un élément existant</button>
-          <button type="button" onClick={onDismiss}>Annuler</button>
         </>
       )}
       {(mode === 'linked-goal' || mode === 'step') && (
