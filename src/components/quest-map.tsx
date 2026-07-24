@@ -98,7 +98,11 @@ export function QuestMap() {
   }
 
   return (
-    <main className="quest-shell qt-nocturne" ref={surface} aria-label="Carte de quête">
+    <main className="quest-shell qt-nocturne atlas-calm" ref={surface} aria-label="Carte de quête">
+      <span className="q-star" style={{ top: '14%', left: '22%', animationDelay: '0s' }} />
+      <span className="q-star" style={{ top: '68%', left: '78%', animationDelay: '.8s' }} />
+      <span className="q-star" style={{ top: '32%', left: '86%', animationDelay: '1.6s' }} />
+      <span className="q-star" style={{ top: '82%', left: '12%', animationDelay: '2.3s' }} />
       <ReactFlow
         className="quest-flow"
         nodes={nodes}
