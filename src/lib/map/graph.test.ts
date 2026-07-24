@@ -163,4 +163,28 @@ describe('buildQuestGraph', () => {
     expect(first.nodes.find((node) => node.id === 'objective-quest-2')?.position).toEqual({ x: 360, y: 790 });
     expect(first.nodes.find((node) => node.id === 'objective-quest-1')?.position.y).not.toBe(first.nodes.find((node) => node.id === 'objective-quest-2')?.position.y);
   });
+
+  it('connects a step to its actual parent step, not the objective, when parentStepId is set', () => {
+    const graph = buildQuestGraph({
+      id: 'space-1',
+      name: 'Ma quête',
+      quests: [
+        {
+          id: 'quest-1',
+          title: 'Courir 10 km',
+          color: '#a78bfa',
+          steps: [
+            { id: 'step-1', title: 'Choisir un plan', status: 'active' },
+            { id: 'step-2', title: 'Sous-étape du plan', status: 'locked', parentStepId: 'step-1' },
+          ],
+        },
+      ],
+    });
+
+    expect(graph.edges).toEqual(expect.arrayContaining([
+      expect.objectContaining({ source: 'objective-quest-1', target: 'step-1' }),
+      expect.objectContaining({ source: 'step-1', target: 'step-2' }),
+    ]));
+    expect(graph.edges).not.toContainEqual(expect.objectContaining({ source: 'objective-quest-1', target: 'step-2' }));
+  });
 });

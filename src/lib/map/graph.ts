@@ -4,6 +4,7 @@ export interface QuestStep {
   id: string;
   title: string;
   status: StepStatus;
+  parentStepId?: string | null;
 }
 
 export interface Quest {
@@ -150,39 +151,55 @@ export function buildQuestGraph(space: QuestSpace): {
     };
     nodes.push(objectiveNode);
 
-    quest.steps.forEach((step, stepIndex) => {
-      const position = projectPosition(objectiveNode.position, layout.direction, stepIndex, quest.steps.length);
-
-      const node: QuestGraphNode = {
-        id: step.id,
-        position: findOpenPosition(position, nodes),
-        selected: nodes.length === 0,
-        data: {
-          ...step,
-          questId: quest.id,
-          questTitle: quest.title,
-          color,
-        },
-      };
-      nodes.push(node);
-    });
-  });
-
-  space.quests.forEach((quest) => {
+    // Steps attach to their actual parent (another step, via parentStepId) rather
+    // than always to the objective — a step created by dragging a branch from
+    // another step must connect to that step, not silently re-attach to the hub.
+    const childrenByParentId = new Map<string | null, QuestStep[]>();
     quest.steps.forEach((step) => {
-      const previousNode = nodes.find((node) => node.id === `objective-${quest.id}`);
-      const node = nodes.find((candidate) => candidate.id === step.id);
-      if (!previousNode || !node) return;
-
-      const flowsRight = previousNode.position.x <= node.position.x;
-      edges.push({
-        id: `edge-${previousNode.id}-${node.id}`,
-        source: previousNode.id,
-        sourceHandle: flowsRight ? 'source-right' : 'source-left',
-        target: node.id,
-        targetHandle: flowsRight ? 'target-left' : 'target-right',
-      });
+      const key = step.parentStepId ?? null;
+      const siblings = childrenByParentId.get(key) ?? [];
+      siblings.push(step);
+      childrenByParentId.set(key, siblings);
     });
+
+    type QueueEntry = { parentNode: QuestGraphNode; parentStepId: string | null };
+    const queue: QueueEntry[] = [{ parentNode: objectiveNode, parentStepId: null }];
+    const visited = new Set<string>();
+
+    while (queue.length > 0) {
+      const { parentNode, parentStepId } = queue.shift()!;
+      const children = childrenByParentId.get(parentStepId) ?? [];
+
+      children.forEach((step, stepIndex) => {
+        if (visited.has(step.id)) return; // guards against a corrupted/cyclic parentStepId
+        visited.add(step.id);
+
+        const position = projectPosition(parentNode.position, layout.direction, stepIndex, children.length);
+        const node: QuestGraphNode = {
+          id: step.id,
+          position: findOpenPosition(position, nodes),
+          selected: nodes.length === 0,
+          data: {
+            ...step,
+            questId: quest.id,
+            questTitle: quest.title,
+            color,
+          },
+        };
+        nodes.push(node);
+
+        const flowsRight = parentNode.position.x <= node.position.x;
+        edges.push({
+          id: `edge-${parentNode.id}-${node.id}`,
+          source: parentNode.id,
+          sourceHandle: flowsRight ? 'source-right' : 'source-left',
+          target: node.id,
+          targetHandle: flowsRight ? 'target-left' : 'target-right',
+        });
+
+        queue.push({ parentNode: node, parentStepId: step.id });
+      });
+    }
   });
 
   return { nodes, edges };

@@ -7,15 +7,19 @@ interface NodeAnchorProps {
   label: string;
   onActivate: () => void;
   onKeyboardActivate?: () => void;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
-export function NodeAnchor({ x, y, variant, label, onActivate, onKeyboardActivate }: NodeAnchorProps) {
+export function NodeAnchor({ x, y, variant, label, onActivate, onKeyboardActivate, onMouseEnter, onMouseLeave }: NodeAnchorProps) {
   return (
     <button
       type="button"
       className={`node-anchor ${variant === 'grow' ? 'node-anchor--grow' : ''}`}
       style={{ left: x, top: y }}
       aria-label={label}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
       onClick={(event) => {
         // A native <button> fires 'click' for both a real pointer click and
         // a keyboard Enter/Space activation (event.detail is 0 for the

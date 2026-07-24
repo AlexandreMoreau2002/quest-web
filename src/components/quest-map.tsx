@@ -8,6 +8,7 @@ import {
   ReactFlow,
   ReactFlowProvider,
   useReactFlow,
+  useViewport,
   type Edge,
   type Node,
   type NodeProps,
@@ -84,6 +85,11 @@ export function QuestMap() {
 
 function QuestMapInner() {
   const { flowToScreenPosition } = useReactFlow();
+  // Subscribing to the viewport forces a re-render on every pan/zoom tick
+  // (including momentum-glide frames, which move the viewport without any
+  // hover/selection state changing) so anchorScreenPoint below never goes
+  // stale relative to where the card actually is on screen.
+  useViewport();
   const {
     graph, selectedId, selectedNode, selectNode, selectedQuestId, selectQuest, objectives,
     createQuest, createStep, createLinkedGoal, linkExisting, source, error, spaceName,
@@ -94,6 +100,23 @@ function QuestMapInner() {
   const [isCreatingQuest, setIsCreatingQuest] = useState(false);
   const [isCreatingStep, setIsCreatingStep] = useState(false);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const hideAnchorTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showAnchorFor = (nodeId: string) => {
+    if (hideAnchorTimeout.current !== null) {
+      clearTimeout(hideAnchorTimeout.current);
+      hideAnchorTimeout.current = null;
+    }
+    setHoveredId(nodeId);
+  };
+  // The anchor button sits right on the card's edge, so the cursor crossing
+  // in and out of its small hitbox would otherwise fire the card's
+  // mouseleave/mouseenter back-to-back, making the anchor flicker on and
+  // off rapidly. Delaying the hide (and cancelling it if the pointer lands
+  // on the card or the anchor again within that window) bridges the gap.
+  const scheduleHideAnchor = () => {
+    if (hideAnchorTimeout.current !== null) clearTimeout(hideAnchorTimeout.current);
+    hideAnchorTimeout.current = setTimeout(() => setHoveredId(null), 120);
+  };
   const branchDrag = useBranchDrag();
   const surface = useRef<HTMLDivElement>(null);
   const { themeId, setThemeId } = useTheme();
@@ -125,11 +148,15 @@ function QuestMapInner() {
     const handleFocusIn = (event: FocusEvent) => {
       const nodeEl = (event.target as HTMLElement).closest<HTMLElement>('.quest-node');
       const nodeId = nodeEl?.closest<HTMLElement>('[data-id]')?.dataset.id;
-      if (nodeId) setHoveredId(nodeId);
+      if (nodeId) showAnchorFor(nodeId);
     };
     surfaceEl.addEventListener('focusin', handleFocusIn);
     return () => surfaceEl.removeEventListener('focusin', handleFocusIn);
   }, [surface]);
+
+  useEffect(() => () => {
+    if (hideAnchorTimeout.current !== null) clearTimeout(hideAnchorTimeout.current);
+  }, []);
 
   useEffect(() => {
     if (branchDrag.state.status !== 'dragging') return;
@@ -213,6 +240,8 @@ function QuestMapInner() {
           label={`Ajouter une branche depuis ${hoveredNode.data.title}`}
           onActivate={() => branchDrag.startDrag(hoveredNode.id, anchorScreenPoint!)}
           onKeyboardActivate={() => branchDrag.openMenuAt(hoveredNode.id, anchorScreenPoint!)}
+          onMouseEnter={() => showAnchorFor(hoveredNode.id)}
+          onMouseLeave={() => scheduleHideAnchor()}
         />
       )}
 
@@ -252,8 +281,8 @@ function QuestMapInner() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={(_, node) => selectNode(node.id)}
-        onNodeMouseEnter={(_, node) => setHoveredId(node.id)}
-        onNodeMouseLeave={() => setHoveredId(null)}
+        onNodeMouseEnter={(_, node) => showAnchorFor(node.id)}
+        onNodeMouseLeave={() => scheduleHideAnchor()}
         fitView
         fitViewOptions={{ padding: 0.18 }}
         minZoom={0.5}
