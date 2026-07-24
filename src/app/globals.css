@@ -69,15 +69,52 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 .map-hint { position: absolute; z-index: 5; bottom: 28px; right: 33px; margin: 0; color: var(--q-text-subtle); font: 10px var(--q-font-mono); pointer-events: auto; }
 
 .quest-edge .react-flow__edge-path { stroke-linecap: round; }
-.quest-node { position: relative; width: 210px; min-height: 104px; padding: 16px 18px 15px; border: 1px solid color-mix(in srgb, var(--quest-color), transparent 40%); border-radius: 15px; color: #f8f6ff; background: linear-gradient(145deg, rgba(58,48,99,.97), rgba(34,27,67,.98)); box-shadow: 0 12px 34px #09051882, 0 0 0 1px #ffffff08 inset; transition: box-shadow .2s, filter .2s; }
-.quest-node.is-objective { width: 248px; min-height: 120px; border-color: color-mix(in srgb, var(--quest-color), #f4efff 30%); background: linear-gradient(145deg, color-mix(in srgb, var(--quest-color), #35285f 68%), rgba(28,21,62,.99)); box-shadow: 0 16px 42px #090518a1, 0 0 34px color-mix(in srgb, var(--quest-color), transparent 62%); }
-.quest-node:hover { filter: brightness(1.1); box-shadow: 0 18px 38px #090518a1, 0 0 22px color-mix(in srgb, var(--quest-color), transparent 72%); }
-.quest-node.is-selected { box-shadow: 0 0 0 2px var(--quest-color), 0 16px 42px #090518a1, 0 0 30px color-mix(in srgb, var(--quest-color), transparent 62%); }
-.node-status { display: block; margin-bottom: 12px; color: color-mix(in srgb, var(--quest-color), #e8edff 54%); font: 500 9px 'DM Mono', monospace; letter-spacing: .06em; text-transform: uppercase; }
-.quest-node strong { display: block; font-size: 13px; line-height: 1.25; }
-.node-description { display: block; margin-top: 7px; color: #b5bde0; font-size: 10px; }
+.quest-node {
+  position: relative; width: 224px; min-height: 100px; padding: 16px 18px 15px;
+  border: 1.5px solid color-mix(in srgb, var(--quest-color), transparent 40%);
+  border-radius: var(--q-radius-card); color: var(--q-text);
+  background: linear-gradient(145deg, rgba(58,48,99,.97), rgba(34,27,67,.98));
+  box-shadow: var(--q-shadow-1), 0 0 0 1px rgba(255,255,255,.03) inset;
+  transition: box-shadow .2s, filter .2s;
+  font-family: var(--q-font-body);
+}
+.quest-node.is-objective {
+  width: 272px; min-height: 132px;
+  border-color: color-mix(in srgb, var(--quest-color), #f4efff 30%);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--quest-color), #35285f 68%), rgba(28,21,62,.99));
+  box-shadow: var(--q-shadow-1), 0 0 34px color-mix(in srgb, var(--quest-color), transparent 62%);
+}
+.quest-node:hover { filter: brightness(1.1); box-shadow: 0 18px 38px rgba(9,5,24,.63), 0 0 22px color-mix(in srgb, var(--quest-color), transparent 72%); }
+.quest-node.is-selected { box-shadow: 0 0 0 2px var(--quest-color), var(--q-shadow-1), 0 0 30px color-mix(in srgb, var(--quest-color), transparent 62%); }
+.quest-node:focus-visible { outline: 2px solid var(--q-accent); outline-offset: 3px; }
+
+.node-status { display: block; margin-bottom: 12px; color: color-mix(in srgb, var(--quest-color), #e8edff 54%); font: 500 9px var(--q-font-mono); letter-spacing: .06em; text-transform: uppercase; }
+.quest-node strong { display: block; font-family: var(--q-font-display); font-size: 15px; line-height: 1.25; }
+.node-description { display: block; margin-top: 7px; color: var(--q-text-muted); font-size: 10px; }
 .node-handle { top: 50% !important; width: 8px !important; height: 8px !important; border: 2px solid #302651 !important; background: var(--quest-color) !important; opacity: .94; }
-.status-locked { opacity: .66; filter: saturate(.6); }
+
+.status-done { border-style: solid; }
+.status-active { border-style: solid; }
+.status-active .node-status::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: var(--q-progress); animation: q-pulse 1.8s ease-in-out infinite; vertical-align: middle; }
+.status-locked { border-style: dashed !important; opacity: .78; filter: saturate(.6); }
+.status-locked strong, .status-locked .node-description { color: var(--q-text-subtle); }
+.status-loading { position: relative; overflow: hidden; }
+.status-loading::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,.08) 50%, transparent 70%);
+  background-size: 200% 100%; animation: q-shimmer 1.6s linear infinite;
+}
+.status-error { border-color: var(--q-error) !important; }
+.status-error .node-status, .status-error strong { color: var(--q-error-text); }
+
+@keyframes q-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(196, 168, 255, .55); }
+  50% { opacity: .6; box-shadow: 0 0 0 5px rgba(196, 168, 255, 0); }
+}
+@keyframes q-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
 
 @media (max-width: 760px) {
   .topbar { top: 17px; left: 17px; right: 17px; }

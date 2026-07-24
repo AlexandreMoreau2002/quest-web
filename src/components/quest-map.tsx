@@ -20,7 +20,19 @@ type QuestFlowNode = Node<QuestGraphNode['data']>;
 
 function QuestNode({ data, selected }: NodeProps<QuestFlowNode>) {
   return (
-    <div className={`quest-node status-${data.status} ${data.isObjective ? 'is-objective' : ''} ${selected ? 'is-selected' : ''}`} style={{ '--quest-color': data.color } as React.CSSProperties}>
+    <div
+      className={`quest-node status-${data.status} ${data.isObjective ? 'is-objective' : ''} ${selected ? 'is-selected' : ''}`}
+      style={{ '--quest-color': data.color } as React.CSSProperties}
+      tabIndex={0}
+      role="button"
+      aria-label={data.title}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          event.currentTarget.click();
+        }
+      }}
+    >
       <Handle id="target-left" type="target" position={Position.Left} className="node-handle" />
       <Handle id="source-left" type="source" position={Position.Left} className="node-handle" />
       <span className="node-status">{data.isObjective ? 'Objectif' : data.status === 'done' ? 'Accompli' : data.status === 'active' ? 'En cours' : 'À venir'}</span>
@@ -55,6 +67,7 @@ export function QuestMap() {
     ...node,
     type: 'quest',
     selected: node.id === selectedId,
+    ariaLabel: node.data.title,
   }));
   const edges: Edge[] = graph.edges.map((edge) => ({
     ...edge,
