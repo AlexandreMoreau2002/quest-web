@@ -9,6 +9,7 @@ export type CreateQuestInput = {
 export type CreateStepInput = {
   title: string;
   order?: number;
+  parentStepId?: string;
 };
 
 export type UpdateStepInput = {

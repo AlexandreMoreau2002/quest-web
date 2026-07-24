@@ -6,6 +6,8 @@ import {
   Handle,
   Position,
   ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
   type Edge,
   type Node,
   type NodeProps,
@@ -70,6 +72,15 @@ function MapMomentum({ surface }: { surface: RefObject<HTMLDivElement | null> })
 }
 
 export function QuestMap() {
+  return (
+    <ReactFlowProvider>
+      <QuestMapInner />
+    </ReactFlowProvider>
+  );
+}
+
+function QuestMapInner() {
+  const { flowToScreenPosition } = useReactFlow();
   const {
     graph, selectedId, selectedNode, selectNode, selectedQuestId, selectQuest, objectives,
     createQuest, createStep, createLinkedGoal, linkExisting, source, error, spaceName,
@@ -98,6 +109,9 @@ export function QuestMap() {
       anchorPoint = intersectRectangle(hoveredRect, { x: hoveredCenter.x + 1000, y: hoveredCenter.y });
     }
   }
+  // anchorPoint above is in flow (graph) coordinates. NodeAnchor is rendered
+  // outside the ReactFlow viewport transform, so it needs screen coordinates.
+  const anchorScreenPoint = anchorPoint ? flowToScreenPosition(anchorPoint) : null;
 
   useEffect(() => {
     const surfaceEl = surface.current;
@@ -164,13 +178,14 @@ export function QuestMap() {
       <span className="q-star" aria-hidden="true" style={{ top: '32%', left: '86%', animationDelay: '1.6s' }} />
       <span className="q-star" aria-hidden="true" style={{ top: '82%', left: '12%', animationDelay: '2.3s' }} />
 
-      {hoveredNode && anchorPoint && (
+      {hoveredNode && anchorScreenPoint && (
         <NodeAnchor
-          x={anchorPoint.x}
-          y={anchorPoint.y}
+          x={anchorScreenPoint.x}
+          y={anchorScreenPoint.y}
           variant="grow"
           label={`Ajouter une branche depuis ${hoveredNode.data.title}`}
-          onActivate={() => branchDrag.startDrag(hoveredNode.id, anchorPoint!)}
+          onActivate={() => branchDrag.startDrag(hoveredNode.id, anchorScreenPoint!)}
+          onKeyboardActivate={() => branchDrag.openMenuAt(hoveredNode.id, anchorScreenPoint!)}
         />
       )}
 
@@ -182,8 +197,7 @@ export function QuestMap() {
           onChoose={async (choice) => {
             const sourceNodeId = dragState.sourceNodeId;
             if (choice.kind === 'step') {
-              selectNode(sourceNodeId);
-              await createStep(choice.title);
+              await createStep(choice.title, sourceNodeId);
             }
             if (choice.kind === 'linked-goal') {
               selectNode(sourceNodeId);

@@ -80,18 +80,26 @@ export function useQuestMap() {
     return true;
   }, [source, space.id, space.quests.length]);
 
-  const createStep = useCallback(async (title: string): Promise<boolean> => {
+  const createStep = useCallback(async (title: string, parentNodeId?: string): Promise<boolean> => {
     const cleanTitle = title.trim();
-    if (!cleanTitle || !selectedNode) return false;
+    // Prefer an explicitly provided parent node (e.g. the card a branch was
+    // dragged from) over the currently selected node, since `selectedId`
+    // updates asynchronously and would otherwise still point at the
+    // previous selection when this same event handler calls createStep.
+    const targetNode = parentNodeId ? graph.nodes.find((node) => node.id === parentNodeId) : selectedNode;
+    if (!cleanTitle || !targetNode) return false;
 
-    const quest = space.quests.find((candidate) => candidate.id === selectedNode.data.questId);
+    const quest = space.quests.find((candidate) => candidate.id === targetNode.data.questId);
     if (!quest) return false;
+
+    const parentStepId = targetNode.data.isObjective ? undefined : targetNode.id;
 
     if (source === 'api') {
       try {
         const newStep = await new QuestApiClient(API_URL).createStep(quest.id, {
           title: cleanTitle,
           order: quest.steps.length,
+          parentStepId,
         });
         setSpace((current) => ({
           ...current,
@@ -118,7 +126,7 @@ export function useQuestMap() {
     setSelectedId(newStep.id);
     setError(null);
     return true;
-  }, [selectedNode, source, space.quests]);
+  }, [selectedNode, source, space.quests, graph.nodes]);
 
   const reparentStep = useCallback(async (stepId: string, newParentQuestId: string): Promise<boolean> => {
     if (source !== 'api') {

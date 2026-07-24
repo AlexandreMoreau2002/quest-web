@@ -16,6 +16,12 @@ export function useBranchDrag() {
     setState({ status: 'dragging', sourceNodeId, cursor });
   }, []);
 
+  // Keyboard activation has no pointerup to end a drag with, so it opens the
+  // menu directly at the anchor's position instead of entering 'dragging'.
+  const openMenuAt = useCallback((sourceNodeId: string, menuPosition: Point) => {
+    setState({ status: 'menu-open', sourceNodeId, menuPosition });
+  }, []);
+
   const updateDrag = useCallback((cursor: Point) => {
     setState((current) => (current.status === 'dragging' ? { ...current, cursor } : current));
   }, []);
@@ -28,5 +34,5 @@ export function useBranchDrag() {
 
   const reset = useCallback(() => setState({ status: 'idle' }), []);
 
-  return { state, startDrag, updateDrag, endDrag, reset };
+  return { state, startDrag, updateDrag, endDrag, openMenuAt, reset };
 }
