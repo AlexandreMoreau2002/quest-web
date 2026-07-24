@@ -136,3 +136,14 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 }
 .empty-state { position: absolute; z-index: 5; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 320px; padding: 26px; text-align: center; }
 .empty-state h2 { margin: 10px 0 8px; }
+
+.node-anchor {
+  position: absolute; z-index: 6; width: 20px; height: 20px; border-radius: 50%;
+  display: grid; place-items: center; cursor: grab;
+  background: var(--q-surface); border: 1.5px solid var(--q-border-strong);
+  transform: translate(-50%, -50%);
+  transition: transform .15s, box-shadow .15s;
+}
+.node-anchor:hover, .node-anchor:focus-visible { box-shadow: 0 0 0 4px rgba(173, 150, 255, .18); }
+.node-anchor:focus-visible { outline: 2px solid var(--q-accent); outline-offset: 2px; }
+.node-anchor.node-anchor--grow { background: var(--q-cta-bg); border: none; color: var(--q-cta-text); font-size: 13px; font-weight: 700; }
