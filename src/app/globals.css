@@ -153,3 +153,10 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 .branch-menu button { display: block; width: 100%; padding: 10px 12px; margin: 0; text-align: left; border-radius: 8px; background: transparent; color: var(--q-text); font-size: 13px; font-weight: 500; }
 .branch-menu button:hover, .branch-menu button:focus-visible { background: rgba(255,255,255,.08); }
 .branch-menu input { margin-top: 6px; }
+
+.theme-switcher { display: flex; gap: 6px; margin-left: 10px; }
+.theme-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--q-border-strong); cursor: pointer; padding: 0; }
+.theme-dot[data-theme='nocturne'] { background: #22194a; }
+.theme-dot[data-theme='pirate'] { background: #d99b3f; }
+.theme-dot[data-theme='futurist'] { background: #38e0ff; }
+.theme-dot[aria-pressed='true'] { box-shadow: 0 0 0 2px var(--q-accent); }

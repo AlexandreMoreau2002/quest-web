@@ -17,9 +17,11 @@ import '@xyflow/react/dist/style.css';
 import { useQuestMap } from '@/hooks/use-quest-map';
 import { useMomentumPan } from '@/hooks/use-momentum-pan';
 import { useBranchDrag } from '@/hooks/use-branch-drag';
+import { useTheme, THEME_CLASS } from '@/hooks/use-theme';
 import { QuestEdge } from '@/components/quest-edge';
 import { NodeAnchor } from '@/components/node-anchor';
 import { BranchMenu } from '@/components/branch-menu';
+import { ThemeSwitcher } from '@/components/theme-switcher';
 import { intersectRectangle, type Rect } from '@/lib/map/edge-geometry';
 import type { QuestGraphNode } from '@/lib/map/graph';
 
@@ -93,6 +95,7 @@ function QuestMapInner() {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const branchDrag = useBranchDrag();
   const surface = useRef<HTMLDivElement>(null);
+  const { themeId, setThemeId } = useTheme();
 
   const hoveredNode = graph.nodes.find((node) => node.id === hoveredId) ?? null;
   let anchorPoint: { x: number; y: number } | null = null;
@@ -172,7 +175,7 @@ function QuestMapInner() {
   }
 
   return (
-    <main className="quest-shell qt-nocturne atlas-calm" ref={surface} aria-label="Carte de quête">
+    <main className={`quest-shell ${THEME_CLASS[themeId]} atlas-calm`} ref={surface} aria-label="Carte de quête">
       <span className="q-star" aria-hidden="true" style={{ top: '14%', left: '22%', animationDelay: '0s' }} />
       <span className="q-star" aria-hidden="true" style={{ top: '68%', left: '78%', animationDelay: '.8s' }} />
       <span className="q-star" aria-hidden="true" style={{ top: '32%', left: '86%', animationDelay: '1.6s' }} />
@@ -252,6 +255,7 @@ function QuestMapInner() {
         <span className={`connection-pill ${source === 'api' ? 'api' : ''}`}>
           <i /> {source === 'api' ? 'API connectée' : 'Mode exploration'}
         </span>
+        <ThemeSwitcher activeTheme={themeId} onSelect={setThemeId} />
       </header>
 
       <aside className="creation-panel glass-panel" data-map-overlay>
