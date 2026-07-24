@@ -99,10 +99,19 @@ export function QuestMap() {
 
   return (
     <main className="quest-shell qt-nocturne atlas-calm" ref={surface} aria-label="Carte de quête">
-      <span className="q-star" style={{ top: '14%', left: '22%', animationDelay: '0s' }} />
-      <span className="q-star" style={{ top: '68%', left: '78%', animationDelay: '.8s' }} />
-      <span className="q-star" style={{ top: '32%', left: '86%', animationDelay: '1.6s' }} />
-      <span className="q-star" style={{ top: '82%', left: '12%', animationDelay: '2.3s' }} />
+      <span className="q-star" aria-hidden="true" style={{ top: '14%', left: '22%', animationDelay: '0s' }} />
+      <span className="q-star" aria-hidden="true" style={{ top: '68%', left: '78%', animationDelay: '.8s' }} />
+      <span className="q-star" aria-hidden="true" style={{ top: '32%', left: '86%', animationDelay: '1.6s' }} />
+      <span className="q-star" aria-hidden="true" style={{ top: '82%', left: '12%', animationDelay: '2.3s' }} />
+
+      {objectives.length === 0 && (
+        <div className="empty-state glass-panel" data-map-overlay>
+          <p className="eyebrow">CARTE VIDE</p>
+          <h2>Aucun objectif pour l&rsquo;instant.</h2>
+          <p className="panel-copy">Crée ton premier objectif dans le panneau à gauche pour commencer à explorer.</p>
+        </div>
+      )}
+
       <ReactFlow
         className="quest-flow"
         nodes={nodes}
