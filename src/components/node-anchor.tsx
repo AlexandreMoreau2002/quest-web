@@ -20,15 +20,21 @@ export function NodeAnchor({ x, y, variant, label, onActivate, onKeyboardActivat
       aria-label={label}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      onClick={(event) => {
-        // A native <button> fires 'click' for both a real pointer click and
-        // a keyboard Enter/Space activation (event.detail is 0 for the
-        // latter). Keyboard use has no pointerup to end a click-drag with,
-        // so it opens the branch menu directly instead of starting a drag.
-        if (event.detail === 0) {
+      // Start the drag on pointerdown, not click: 'click' only fires after
+      // the mouse button has already been released, so by the time it ran
+      // the drag had no real pointerdown->pointermove->pointerup sequence
+      // left to track — it silently waited for an unrelated future pointerup
+      // anywhere on the page to "end" it, which is what made this feel broken.
+      onPointerDown={(event) => {
+        event.preventDefault();
+        console.debug('[NodeAnchor] pointerdown → startDrag', { x, y });
+        onActivate();
+      }}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          console.debug('[NodeAnchor] keydown → openMenuAt', { key: event.key, x, y });
           (onKeyboardActivate ?? onActivate)();
-        } else {
-          onActivate();
         }
       }}
     >

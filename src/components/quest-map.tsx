@@ -102,6 +102,7 @@ function QuestMapInner() {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const hideAnchorTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showAnchorFor = (nodeId: string) => {
+    console.debug('[QuestMap] showAnchorFor', nodeId);
     if (hideAnchorTimeout.current !== null) {
       clearTimeout(hideAnchorTimeout.current);
       hideAnchorTimeout.current = null;
@@ -114,8 +115,12 @@ function QuestMapInner() {
   // off rapidly. Delaying the hide (and cancelling it if the pointer lands
   // on the card or the anchor again within that window) bridges the gap.
   const scheduleHideAnchor = () => {
+    console.debug('[QuestMap] scheduleHideAnchor');
     if (hideAnchorTimeout.current !== null) clearTimeout(hideAnchorTimeout.current);
-    hideAnchorTimeout.current = setTimeout(() => setHoveredId(null), 120);
+    hideAnchorTimeout.current = setTimeout(() => {
+      console.debug('[QuestMap] hideAnchor (timeout fired)');
+      setHoveredId(null);
+    }, 120);
   };
   const branchDrag = useBranchDrag();
   const surface = useRef<HTMLDivElement>(null);

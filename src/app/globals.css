@@ -99,7 +99,9 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 .status-done { border-style: solid; }
 .status-active { border-style: solid; }
 .status-active .node-status::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: var(--q-progress); animation: q-pulse 1.8s ease-in-out infinite; vertical-align: middle; }
-.status-locked { border-style: dashed !important; opacity: .78; filter: saturate(.6); }
+/* Muted via filter, not opacity: opacity would punch a hole through the
+   card's opaque backdrop and let connection lines behind it bleed through. */
+.status-locked { border-style: dashed !important; filter: saturate(.55) brightness(.88); }
 .status-locked strong, .status-locked .node-description { color: var(--q-text-subtle); }
 .status-loading { position: relative; overflow: hidden; }
 .status-loading::after {
