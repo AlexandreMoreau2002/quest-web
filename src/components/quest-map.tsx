@@ -14,6 +14,7 @@ import '@xyflow/react/dist/style.css';
 
 import { useQuestMap } from '@/hooks/use-quest-map';
 import { useMomentumPan } from '@/hooks/use-momentum-pan';
+import { QuestEdge } from '@/components/quest-edge';
 import type { QuestGraphNode } from '@/lib/map/graph';
 
 type QuestFlowNode = Node<QuestGraphNode['data']>;
@@ -45,6 +46,7 @@ function QuestNode({ data, selected }: NodeProps<QuestFlowNode>) {
 }
 
 const nodeTypes = { quest: QuestNode };
+const edgeTypes = { quest: QuestEdge };
 
 function MapMomentum({ surface }: { surface: RefObject<HTMLDivElement | null> }) {
   useMomentumPan(surface);
@@ -71,9 +73,9 @@ export function QuestMap() {
   }));
   const edges: Edge[] = graph.edges.map((edge) => ({
     ...edge,
-    type: 'straight',
+    type: 'quest',
     className: 'quest-edge',
-    style: { stroke: '#9b89ec', strokeWidth: 2, strokeDasharray: '7 9', opacity: 0.8 },
+    style: { stroke: 'var(--q-conn)', strokeWidth: 1.4, strokeDasharray: '7 9', opacity: 0.8 },
   }));
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -96,12 +98,13 @@ export function QuestMap() {
   }
 
   return (
-    <main className="quest-shell" ref={surface} aria-label="Carte de quête">
+    <main className="quest-shell qt-nocturne" ref={surface} aria-label="Carte de quête">
       <ReactFlow
         className="quest-flow"
         nodes={nodes}
         edges={edges}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         onNodeClick={(_, node) => selectNode(node.id)}
         fitView
         fitViewOptions={{ padding: 0.18 }}
