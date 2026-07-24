@@ -100,6 +100,18 @@ export function QuestMap() {
   }
 
   useEffect(() => {
+    const surfaceEl = surface.current;
+    if (!surfaceEl) return;
+    const handleFocusIn = (event: FocusEvent) => {
+      const nodeEl = (event.target as HTMLElement).closest<HTMLElement>('.quest-node');
+      const nodeId = nodeEl?.closest<HTMLElement>('[data-id]')?.dataset.id;
+      if (nodeId) setHoveredId(nodeId);
+    };
+    surfaceEl.addEventListener('focusin', handleFocusIn);
+    return () => surfaceEl.removeEventListener('focusin', handleFocusIn);
+  }, [surface]);
+
+  useEffect(() => {
     if (branchDrag.state.status !== 'dragging') return;
     const handleMove = (event: PointerEvent) => branchDrag.updateDrag({ x: event.clientX, y: event.clientY });
     const handleUp = () => branchDrag.endDrag();
