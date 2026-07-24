@@ -1,0 +1,65 @@
+/* web/src/app/tokens.css */
+.qt-nocturne {
+  /* Surface */
+  --q-bg: #071329;
+  --q-bg-elevated: #111c41;
+  --q-surface: rgba(45, 37, 79, 0.88);
+  --q-surface-2: rgba(30, 24, 57, 0.77);
+
+  /* Texte */
+  --q-text: #f8f6ff;
+  --q-text-muted: #c4bddb;
+  --q-text-subtle: #a79fbe;
+
+  /* Bordure */
+  --q-border: rgba(238, 232, 255, 0.14);
+  --q-border-strong: rgba(228, 216, 255, 0.28);
+
+  /* Accent / CTA */
+  --q-accent: #ad96ff;
+  --q-accent-contrast: #21193d;
+  --q-cta-bg: linear-gradient(135deg, #d8cdfc, #b89fff);
+  --q-cta-text: #21193d;
+
+  /* Statuts */
+  --q-done: #75d7bf;
+  --q-progress: #c4a8ff;
+  --q-locked: #a7a0bb;
+  --q-error: #c4665c;
+  --q-error-text: #d98a82;
+
+  /* Connexion */
+  --q-conn: #9b89ec;
+
+  /* Ombres / glow */
+  --q-glow: rgba(155, 126, 225, 0.47);
+  --q-shadow-1: 0 12px 34px rgba(9, 5, 24, 0.51);
+  --q-shadow-2: 0 22px 60px rgba(5, 3, 19, 0.35);
+  --q-shadow-3: 0 5px 24px rgba(155, 126, 225, 0.47);
+
+  /* Fond */
+  --q-texture:
+    radial-gradient(ellipse 48rem 35rem at 76% 12%, rgba(83, 101, 211, 0.25), transparent 68%),
+    radial-gradient(ellipse 41rem 32rem at 16% 86%, rgba(83, 48, 150, 0.30), transparent 72%),
+    radial-gradient(ellipse 38rem 25rem at 54% 54%, rgba(41, 83, 153, 0.17), transparent 72%),
+    linear-gradient(135deg, #071329 0%, #111c41 43%, #22194a 100%);
+
+  /* Typo */
+  --q-font-display: var(--font-source-serif, 'Source Serif 4', serif);
+  --q-font-body: 'DM Sans', Arial, sans-serif;
+  --q-font-mono: 'DM Mono', monospace;
+
+  /* Espacement / rayons */
+  --q-radius-card: 15px;
+  --q-radius-panel: 18px;
+  --q-space-1: 4px;
+  --q-space-2: 8px;
+  --q-space-3: 12px;
+  --q-space-4: 16px;
+  --q-space-5: 22px;
+  --q-space-6: 32px;
+}
+
+.atlas-calm {
+  --q-star-density: 0.72;
+}
