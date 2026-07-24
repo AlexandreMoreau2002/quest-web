@@ -11,6 +11,13 @@ export type CreateStepInput = {
   order?: number;
 };
 
+export type UpdateStepInput = {
+  title?: string;
+  status?: QuestStep['status'];
+  parentStepId?: string;
+  order?: number;
+};
+
 export class QuestApiClient {
   constructor(private readonly baseUrl: string) {}
 
@@ -37,6 +44,10 @@ export class QuestApiClient {
     return this.sendJson<QuestStep>(`/quests/${questId}/steps`, input);
   }
 
+  updateStep(stepId: string, input: UpdateStepInput): Promise<QuestStep> {
+    return this.patchJson<QuestStep>(`/steps/${stepId}`, input);
+  }
+
   private async getJson<T>(path: string): Promise<T> {
     const response = await fetch(`${this.baseUrl.replace(/\/$/, '')}${path}`, { cache: 'no-store' });
     if (!response.ok) {
@@ -53,6 +64,18 @@ export class QuestApiClient {
     });
     if (!response.ok) {
       throw new Error(`Création impossible (${response.status})`);
+    }
+    return response.json() as Promise<T>;
+  }
+
+  private async patchJson<T>(path: string, body: object): Promise<T> {
+    const response = await fetch(`${this.baseUrl.replace(/\/$/, '')}${path}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`Mise à jour impossible (${response.status})`);
     }
     return response.json() as Promise<T>;
   }

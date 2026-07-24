@@ -51,4 +51,26 @@ describe('QuestApiClient', () => {
       body: JSON.stringify({ title: 'Lancer Quest', steps: ['Définir le MVP'] }),
     });
   });
+
+  it('updateStep sends a PATCH request with the given fields', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ id: 'step-a', title: 'Définir le MVP', status: 'active' }),
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await new QuestApiClient('http://localhost:3001').updateStep('step-a', {
+      parentStepId: 'step-b',
+      order: 2,
+    });
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/steps/step-a', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parentStepId: 'step-b', order: 2 }),
+    });
+    expect(result).toMatchObject({ id: 'step-a', title: 'Définir le MVP', status: 'active' });
+  });
 });
