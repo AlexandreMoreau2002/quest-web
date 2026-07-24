@@ -44,10 +44,12 @@ export interface QuestGraphEdge {
 type Point = { x: number; y: number };
 
 const ATLAS_FOCUS: Point = { x: 760, y: 480 };
-const CARD_WIDTH = 210;
-const CARD_HEIGHT = 104;
+const OBJECTIVE_WIDTH = 272;
+const OBJECTIVE_HEIGHT = 132;
+const STEP_WIDTH = 224;
+const STEP_HEIGHT = 100;
 const CARD_GAP = 64;
-const CARD_CLEARANCE = { x: CARD_WIDTH + CARD_GAP, y: CARD_HEIGHT + CARD_GAP };
+const CARD_CLEARANCE = { x: OBJECTIVE_WIDTH + CARD_GAP, y: OBJECTIVE_HEIGHT + CARD_GAP };
 const QUEST_COLORS = ['#b49cff', '#55d9bd', '#f6ae6e', '#7dd3fc', '#f9a8d4'];
 const BRANCH_LAYOUTS: Array<{ offset: Point; direction: Point }> = [
   { offset: { x: 0, y: 0 }, direction: { x: 350, y: 220 } },
