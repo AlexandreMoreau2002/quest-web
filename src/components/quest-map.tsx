@@ -128,6 +128,7 @@ export function QuestMap() {
         zoomOnScroll
         zoomOnPinch
         nodesDraggable={false}
+        nodesFocusable={false}
         proOptions={{ hideAttribution: true }}
       >
         <MapMomentum surface={surface} />
