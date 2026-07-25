@@ -13,9 +13,11 @@
   },
   "dependencies": {
     "@xyflow/react": "^12.10.0",
+    "i18next": "^26.3.6",
     "next": "^16.2.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-i18next": "^17.0.11"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.2",

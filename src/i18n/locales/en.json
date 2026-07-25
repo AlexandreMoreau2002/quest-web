@@ -1,0 +1,78 @@
+{
+  "topbar": {
+    "eyebrow": "ACTIVE EXPEDITION",
+    "apiConnected": "API connected",
+    "localMode": "Exploration mode"
+  },
+  "theme": {
+    "groupLabel": "Theme",
+    "nocturne": "Atlas Nocturne",
+    "pirate": "Pirate",
+    "futurist": "Futuristic City"
+  },
+  "language": {
+    "groupLabel": "Language",
+    "fr": "FR",
+    "en": "EN",
+    "comingSoon": "Coming soon"
+  },
+  "creationPanel": {
+    "eyebrow": "DISPLAYED OBJECTIVE",
+    "title": "Choose a direction.",
+    "description": "Explore one objective at a time, then add its steps on the map.",
+    "objectiveLabel": "Objective",
+    "newObjectiveLabel": "New objective",
+    "newObjectivePlaceholder": "E.g. Learn Italian",
+    "firstStepLabel": "First project or step",
+    "firstStepPlaceholder": "E.g. Choose a method",
+    "submit": "Create objective",
+    "submitPending": "Creating…",
+    "tipLabel": "Tip",
+    "tipText": "drag the map, pinch to zoom."
+  },
+  "inspector": {
+    "description": "This step gives concrete direction to your progress. Choose your next move, then go.",
+    "addStepLabel": "Add a step to \"{{questTitle}}\"",
+    "addStepPlaceholder": "E.g. Prepare the first test",
+    "submit": "Add step",
+    "submitPending": "Creating…",
+    "statusDone": "Done",
+    "statusActive": "In progress",
+    "statusLocked": "Locked"
+  },
+  "emptyState": {
+    "eyebrow": "EMPTY MAP",
+    "title": "No objective yet.",
+    "description": "Create your first objective in the left panel to start exploring."
+  },
+  "node": {
+    "objectiveEyebrow": "Objective",
+    "statusDone": "Done",
+    "statusActive": "In progress",
+    "statusLocked": "Upcoming",
+    "objectiveDescription": "Space · {{questTitle}}"
+  },
+  "anchor": {
+    "addBranchLabel": "Add a branch from {{title}}"
+  },
+  "branchMenu": {
+    "addLinkedGoal": "Add a linked goal",
+    "addStep": "Add a step",
+    "linkExisting": "Link an existing item",
+    "linkedGoalTitleLabel": "Linked goal title",
+    "stepTitleLabel": "Step title",
+    "create": "Create",
+    "searchLabel": "Search an item"
+  },
+  "map": {
+    "hint": "Living map · click a step to explore it",
+    "ariaLabel": "Quest map",
+    "createObjectiveFab": "Create an objective"
+  },
+  "errors": {
+    "questNotSaved": "The quest wasn't saved. Check that the API is running.",
+    "stepNotSaved": "The step wasn't saved. Try again in a moment.",
+    "reparentRequiresApi": "Re-parenting requires the API. Start the API to use this feature.",
+    "reparentFailed": "Re-parenting failed. Try again in a moment."
+  }
+}
