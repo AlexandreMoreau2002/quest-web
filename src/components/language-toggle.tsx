@@ -17,7 +17,7 @@ export function LanguageToggle({ activeLocale, onSelect }: LanguageToggleProps) 
       <button type="button" aria-pressed={activeLocale === 'fr'} onClick={() => onSelect('fr')}>
         {t('language.fr')}
       </button>
-      <button type="button" aria-pressed={activeLocale === 'en'} disabled title={t('language.comingSoon')} onClick={() => {}}>
+      <button type="button" aria-pressed={activeLocale === 'en'} onClick={() => onSelect('en')}>
         {t('language.en')}
       </button>
     </div>
