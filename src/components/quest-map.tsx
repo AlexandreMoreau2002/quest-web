@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type FormEvent, type RefObject } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Controls,
   Handle,
@@ -42,6 +43,7 @@ function rectCenter(rect: Rect) {
 type QuestFlowNode = Node<QuestGraphNode['data']>;
 
 function QuestNode({ data, selected }: NodeProps<QuestFlowNode>) {
+  const { t } = useTranslation();
   return (
     <div
       className={`quest-node status-${data.status} ${data.isObjective ? 'is-objective' : ''} ${selected ? 'is-selected' : ''}`}
@@ -58,9 +60,9 @@ function QuestNode({ data, selected }: NodeProps<QuestFlowNode>) {
     >
       <Handle id="target-left" type="target" position={Position.Left} className="node-handle" />
       <Handle id="source-left" type="source" position={Position.Left} className="node-handle" />
-      <span className="node-status">{data.isObjective ? 'Objectif' : data.status === 'done' ? 'Accompli' : data.status === 'active' ? 'En cours' : 'À venir'}</span>
+      <span className="node-status">{data.isObjective ? t('node.objectiveEyebrow') : data.status === 'done' ? t('node.statusDone') : data.status === 'active' ? t('node.statusActive') : t('node.statusLocked')}</span>
       <strong>{data.title}</strong>
-      <small className="node-description">{data.isObjective ? `Espace · ${data.questTitle}` : data.questTitle}</small>
+      <small className="node-description">{data.isObjective ? t('node.objectiveDescription', { questTitle: data.questTitle }) : data.questTitle}</small>
       <Handle id="target-right" type="target" position={Position.Right} className="node-handle" />
       <Handle id="source-right" type="source" position={Position.Right} className="node-handle" />
     </div>
@@ -125,6 +127,7 @@ function QuestMapInner() {
   const branchDrag = useBranchDrag();
   const surface = useRef<HTMLDivElement>(null);
   const { themeId, setThemeId } = useTheme();
+  const { t } = useTranslation();
   const isMobile = useMediaQuery('(max-width: 760px)');
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
 
@@ -211,27 +214,27 @@ function QuestMapInner() {
 
   const creationPanelContent = (
     <>
-      <p className="eyebrow">OBJECTIF AFFICHÉ</p>
-      <h2>Choisis un cap.</h2>
-      <p className="panel-copy">Explore un objectif à la fois, puis ajoute ses étapes sur la carte.</p>
-      <label htmlFor="objective-selector">Objectif</label>
+      <p className="eyebrow">{t('creationPanel.eyebrow')}</p>
+      <h2>{t('creationPanel.title')}</h2>
+      <p className="panel-copy">{t('creationPanel.description')}</p>
+      <label htmlFor="objective-selector">{t('creationPanel.objectiveLabel')}</label>
       <select id="objective-selector" value={selectedQuestId} onChange={(event) => selectQuest(event.target.value)}>
         {objectives.map((objective) => <option key={objective.id} value={objective.id}>{objective.title}</option>)}
       </select>
       <form onSubmit={submit}>
-        <label htmlFor="quest-title">Nouvel objectif</label>
-        <input id="quest-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Ex. Apprendre l’italien" />
-        <label htmlFor="first-step-title">Premier projet ou étape</label>
-        <input id="first-step-title" value={firstStepTitle} onChange={(event) => setFirstStepTitle(event.target.value)} placeholder="Ex. Choisir une méthode" />
-        <button type="submit" disabled={isCreatingQuest}>{isCreatingQuest ? 'Création…' : 'Créer l’objectif'} <span>→</span></button>
+        <label htmlFor="quest-title">{t('creationPanel.newObjectiveLabel')}</label>
+        <input id="quest-title" value={title} onChange={(event) => setTitle(event.target.value)} placeholder={t('creationPanel.newObjectivePlaceholder')} />
+        <label htmlFor="first-step-title">{t('creationPanel.firstStepLabel')}</label>
+        <input id="first-step-title" value={firstStepTitle} onChange={(event) => setFirstStepTitle(event.target.value)} placeholder={t('creationPanel.firstStepPlaceholder')} />
+        <button type="submit" disabled={isCreatingQuest}>{isCreatingQuest ? t('creationPanel.submitPending') : t('creationPanel.submit')} <span>→</span></button>
       </form>
       {error && <p className="form-error" role="alert">{error}</p>}
-      <p className="tip"><b>Astuce</b> — fais glisser la carte, pince pour zoomer.</p>
+      <p className="tip"><b>{t('creationPanel.tipLabel')}</b>{' — '}{t('creationPanel.tipText')}</p>
     </>
   );
 
   return (
-    <main className={`quest-shell ${THEME_CLASS[themeId]} atlas-calm`} ref={surface} aria-label="Carte de quête">
+    <main className={`quest-shell ${THEME_CLASS[themeId]} atlas-calm`} ref={surface} aria-label={t('map.ariaLabel')}>
       <span className="q-star" aria-hidden="true" style={{ top: '14%', left: '22%', animationDelay: '0s' }} />
       <span className="q-star" aria-hidden="true" style={{ top: '68%', left: '78%', animationDelay: '.8s' }} />
       <span className="q-star" aria-hidden="true" style={{ top: '32%', left: '86%', animationDelay: '1.6s' }} />
@@ -242,7 +245,7 @@ function QuestMapInner() {
           x={anchorScreenPoint.x}
           y={anchorScreenPoint.y}
           variant="grow"
-          label={`Ajouter une branche depuis ${hoveredNode.data.title}`}
+          label={t('anchor.addBranchLabel', { title: hoveredNode.data.title })}
           onActivate={() => branchDrag.startDrag(hoveredNode.id, anchorScreenPoint!)}
           onKeyboardActivate={() => branchDrag.openMenuAt(hoveredNode.id, anchorScreenPoint!)}
           onMouseEnter={() => showAnchorFor(hoveredNode.id)}
@@ -273,9 +276,9 @@ function QuestMapInner() {
 
       {objectives.length === 0 && (
         <div className="empty-state glass-panel" data-map-overlay>
-          <p className="eyebrow">CARTE VIDE</p>
-          <h2>Aucun objectif pour l&rsquo;instant.</h2>
-          <p className="panel-copy">Crée ton premier objectif dans le panneau à gauche pour commencer à explorer.</p>
+          <p className="eyebrow">{t('emptyState.eyebrow')}</p>
+          <h2>{t('emptyState.title')}</h2>
+          <p className="panel-copy">{t('emptyState.description')}</p>
         </div>
       )}
 
@@ -307,18 +310,18 @@ function QuestMapInner() {
       <header className="topbar" data-map-overlay>
         <div className="brand-mark">Q</div>
         <div>
-          <p className="eyebrow">EXPÉDITION ACTIVE</p>
+          <p className="eyebrow">{t('topbar.eyebrow')}</p>
           <h1>{spaceName}</h1>
         </div>
         <span className={`connection-pill ${source === 'api' ? 'api' : ''}`}>
-          <i /> {source === 'api' ? 'API connectée' : 'Mode exploration'}
+          <i /> {source === 'api' ? t('topbar.apiConnected') : t('topbar.localMode')}
         </span>
         <ThemeSwitcher activeTheme={themeId} onSelect={setThemeId} />
       </header>
 
       {isMobile ? (
         <>
-          <button type="button" className="fab" aria-label="Créer un objectif" onClick={() => setIsCreatePanelOpen(true)}>+</button>
+          <button type="button" className="fab" aria-label={t('map.createObjectiveFab')} onClick={() => setIsCreatePanelOpen(true)}>+</button>
           {isCreatePanelOpen && (
             <div className="fab-sheet" onClick={() => setIsCreatePanelOpen(false)}>
               <div className="fab-sheet-panel" onClick={(event) => event.stopPropagation()}>
@@ -345,12 +348,12 @@ function QuestMapInner() {
               <span className="inspector-orb" style={{ background: node.data.color }} />
               <h2>{node.data.title}</h2>
             </div>
-            <span className={`state-badge ${node.data.status}`}>{node.data.status === 'done' ? 'Accompli' : node.data.status === 'active' ? 'En cours' : 'Verrouillé'}</span>
-            <p className="panel-copy">Cette étape donne une direction concrète à ta progression. Choisis le prochain geste, puis avance.</p>
+            <span className={`state-badge ${node.data.status}`}>{node.data.status === 'done' ? t('inspector.statusDone') : node.data.status === 'active' ? t('inspector.statusActive') : t('inspector.statusLocked')}</span>
+            <p className="panel-copy">{t('inspector.description')}</p>
             <form className="step-form" onSubmit={submitStep}>
-              <label htmlFor="step-title">Ajouter une étape à « {node.data.questTitle} »</label>
-              <input id="step-title" value={stepTitle} onChange={(event) => setStepTitle(event.target.value)} placeholder="Ex. Préparer le premier test" />
-              <button type="submit" disabled={isCreatingStep}>{isCreatingStep ? 'Création…' : 'Ajouter l’étape'} <span>→</span></button>
+              <label htmlFor="step-title">{t('inspector.addStepLabel', { questTitle: node.data.questTitle })}</label>
+              <input id="step-title" value={stepTitle} onChange={(event) => setStepTitle(event.target.value)} placeholder={t('inspector.addStepPlaceholder')} />
+              <button type="submit" disabled={isCreatingStep}>{isCreatingStep ? t('inspector.submitPending') : t('inspector.submit')} <span>→</span></button>
             </form>
           </>
         );
@@ -366,7 +369,7 @@ function QuestMapInner() {
         );
       })()}
 
-      <p className="map-hint" data-map-overlay>Carte vivante · clique une étape pour l’explorer</p>
+      <p className="map-hint" data-map-overlay>{t('map.hint')}</p>
     </main>
   );
 }
