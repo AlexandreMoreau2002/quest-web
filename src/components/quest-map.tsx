@@ -21,10 +21,12 @@ import { useMomentumPan } from '@/hooks/use-momentum-pan';
 import { useBranchDrag } from '@/hooks/use-branch-drag';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useTheme, THEME_CLASS } from '@/hooks/use-theme';
+import { useLocale } from '@/hooks/use-locale';
 import { QuestEdge } from '@/components/quest-edge';
 import { NodeAnchor } from '@/components/node-anchor';
 import { BranchMenu } from '@/components/branch-menu';
 import { ThemeSwitcher } from '@/components/theme-switcher';
+import { LanguageToggle } from '@/components/language-toggle';
 import { intersectRectangle, type Rect } from '@/lib/map/edge-geometry';
 import type { QuestGraphNode } from '@/lib/map/graph';
 
@@ -127,6 +129,7 @@ function QuestMapInner() {
   const branchDrag = useBranchDrag();
   const surface = useRef<HTMLDivElement>(null);
   const { themeId, setThemeId } = useTheme();
+  const { locale, setLocale } = useLocale();
   const { t } = useTranslation();
   const isMobile = useMediaQuery('(max-width: 760px)');
   const [isCreatePanelOpen, setIsCreatePanelOpen] = useState(false);
@@ -317,6 +320,7 @@ function QuestMapInner() {
           <i /> {source === 'api' ? t('topbar.apiConnected') : t('topbar.localMode')}
         </span>
         <ThemeSwitcher activeTheme={themeId} onSelect={setThemeId} />
+        <LanguageToggle activeLocale={locale} onSelect={setLocale} />
       </header>
 
       {isMobile ? (
