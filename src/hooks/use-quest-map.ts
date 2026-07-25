@@ -80,7 +80,7 @@ export function useQuestMap() {
     setSelectedQuestId(newQuest.id);
     setError(null);
     return true;
-  }, [source, space.id, space.quests.length]);
+  }, [source, space.id, space.quests.length, t]);
 
   const createStep = useCallback(async (title: string, parentNodeId?: string): Promise<boolean> => {
     const cleanTitle = title.trim();
@@ -128,7 +128,7 @@ export function useQuestMap() {
     setSelectedId(newStep.id);
     setError(null);
     return true;
-  }, [selectedNode, source, space.quests, graph.nodes]);
+  }, [selectedNode, source, space.quests, graph.nodes, t]);
 
   const reparentStep = useCallback(async (stepId: string, newParentQuestId: string): Promise<boolean> => {
     if (source !== 'api') {
