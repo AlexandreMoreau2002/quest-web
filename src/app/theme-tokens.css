@@ -1,0 +1,69 @@
+.qt-pirate {
+  --q-bg: #2b1d0f;
+  --q-bg-elevated: #3a2712;
+  --q-surface: rgba(74, 52, 26, .88);
+  --q-surface-2: rgba(54, 38, 18, .8);
+  --q-text: #f3e6c8;
+  --q-text-muted: #d8c193;
+  --q-text-subtle: #a98f5f;
+  --q-border: rgba(230, 200, 140, .18);
+  --q-border-strong: rgba(230, 200, 140, .32);
+  --q-accent: #d99b3f;
+  --q-accent-contrast: #2b1d0f;
+  --q-cta-bg: linear-gradient(135deg, #e8b563, #c47f2a);
+  --q-cta-text: #2b1d0f;
+  --q-done: #7fae5e;
+  --q-progress: #d99b3f;
+  --q-locked: #8a765a;
+  --q-error: #b5502f;
+  --q-error-text: #d98a6a;
+  --q-conn: #b5813c;
+  --q-glow: rgba(217, 155, 63, .4);
+  --q-shadow-1: 0 12px 34px rgba(20, 12, 4, .55);
+  --q-shadow-2: 0 22px 60px rgba(20, 12, 4, .4);
+  --q-shadow-3: 0 5px 24px rgba(217, 155, 63, .4);
+  --q-texture:
+    radial-gradient(ellipse 50rem 36rem at 20% 15%, rgba(180, 130, 60, .12), transparent 70%),
+    radial-gradient(ellipse 40rem 30rem at 80% 85%, rgba(120, 80, 30, .16), transparent 72%),
+    linear-gradient(135deg, #241708 0%, #2b1d0f 45%, #3a2712 100%);
+  --q-font-display: var(--font-pirate-display, 'Pirata One', serif);
+  --q-font-body: 'DM Sans', Arial, sans-serif;
+  --q-font-mono: 'DM Mono', monospace;
+  --q-radius-card: 10px;
+  --q-radius-panel: 12px;
+}
+
+.qt-futurist {
+  --q-bg: #050912;
+  --q-bg-elevated: #0a1220;
+  --q-surface: rgba(10, 22, 38, .88);
+  --q-surface-2: rgba(6, 14, 26, .8);
+  --q-text: #e4faff;
+  --q-text-muted: #93d8e8;
+  --q-text-subtle: #4f8496;
+  --q-border: rgba(80, 220, 255, .18);
+  --q-border-strong: rgba(80, 220, 255, .34);
+  --q-accent: #38e0ff;
+  --q-accent-contrast: #011018;
+  --q-cta-bg: linear-gradient(135deg, #38e0ff, #ff3ec9);
+  --q-cta-text: #011018;
+  --q-done: #4fffb0;
+  --q-progress: #38e0ff;
+  --q-locked: #3d5866;
+  --q-error: #ff4d6d;
+  --q-error-text: #ff8fa3;
+  --q-conn: #38e0ff;
+  --q-glow: rgba(56, 224, 255, .45);
+  --q-shadow-1: 0 12px 34px rgba(1, 4, 10, .6);
+  --q-shadow-2: 0 22px 60px rgba(1, 4, 10, .5);
+  --q-shadow-3: 0 5px 24px rgba(56, 224, 255, .45);
+  --q-texture:
+    radial-gradient(ellipse 46rem 34rem at 85% 10%, rgba(56, 224, 255, .12), transparent 68%),
+    radial-gradient(ellipse 42rem 30rem at 10% 90%, rgba(255, 62, 201, .1), transparent 72%),
+    linear-gradient(135deg, #020409 0%, #050912 45%, #0a1220 100%);
+  --q-font-display: var(--font-futurist-display, 'Chakra Petch', sans-serif);
+  --q-font-body: 'DM Sans', Arial, sans-serif;
+  --q-font-mono: 'DM Mono', monospace;
+  --q-radius-card: 4px;
+  --q-radius-panel: 6px;
+}

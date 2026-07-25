@@ -1,0 +1,78 @@
+{
+  "topbar": {
+    "eyebrow": "EXPÉDITION ACTIVE",
+    "apiConnected": "API connectée",
+    "localMode": "Mode exploration"
+  },
+  "theme": {
+    "groupLabel": "Choix du thème",
+    "nocturne": "Atlas Nocturne",
+    "pirate": "Pirate",
+    "futurist": "Ville futuriste"
+  },
+  "language": {
+    "groupLabel": "Langue",
+    "fr": "FR",
+    "en": "EN",
+    "comingSoon": "Bientôt disponible"
+  },
+  "creationPanel": {
+    "eyebrow": "OBJECTIF AFFICHÉ",
+    "title": "Choisis un cap.",
+    "description": "Explore un objectif à la fois, puis ajoute ses étapes sur la carte.",
+    "objectiveLabel": "Objectif",
+    "newObjectiveLabel": "Nouvel objectif",
+    "newObjectivePlaceholder": "Ex. Apprendre l’italien",
+    "firstStepLabel": "Premier projet ou étape",
+    "firstStepPlaceholder": "Ex. Choisir une méthode",
+    "submit": "Créer l’objectif",
+    "submitPending": "Création…",
+    "tipLabel": "Astuce",
+    "tipText": "fais glisser la carte, pince pour zoomer."
+  },
+  "inspector": {
+    "description": "Cette étape donne une direction concrète à ta progression. Choisis le prochain geste, puis avance.",
+    "addStepLabel": "Ajouter une étape à « {{questTitle}} »",
+    "addStepPlaceholder": "Ex. Préparer le premier test",
+    "submit": "Ajouter l’étape",
+    "submitPending": "Création…",
+    "statusDone": "Accompli",
+    "statusActive": "En cours",
+    "statusLocked": "Verrouillé"
+  },
+  "emptyState": {
+    "eyebrow": "CARTE VIDE",
+    "title": "Aucun objectif pour l’instant.",
+    "description": "Crée ton premier objectif dans le panneau à gauche pour commencer à explorer."
+  },
+  "node": {
+    "objectiveEyebrow": "Objectif",
+    "statusDone": "Accompli",
+    "statusActive": "En cours",
+    "statusLocked": "À venir",
+    "objectiveDescription": "Espace · {{questTitle}}"
+  },
+  "anchor": {
+    "addBranchLabel": "Ajouter une branche depuis {{title}}"
+  },
+  "branchMenu": {
+    "addLinkedGoal": "Ajouter un objectif lié",
+    "addStep": "Ajouter une étape",
+    "linkExisting": "Lier un élément existant",
+    "linkedGoalTitleLabel": "Titre de l’objectif lié",
+    "stepTitleLabel": "Titre de l’étape",
+    "create": "Créer",
+    "searchLabel": "Rechercher un élément"
+  },
+  "map": {
+    "hint": "Carte vivante · clique une étape pour l’explorer",
+    "ariaLabel": "Carte de quête",
+    "createObjectiveFab": "Créer un objectif"
+  },
+  "errors": {
+    "questNotSaved": "La quête n’a pas été enregistrée. Vérifie que l’API est bien lancée.",
+    "stepNotSaved": "L’étape n’a pas été enregistrée. Réessaie dans un instant.",
+    "reparentRequiresApi": "Le re-parentage nécessite l’API. Lance l’API pour utiliser cette fonctionnalité.",
+    "reparentFailed": "Le re-parentage a échoué. Réessaie dans un instant."
+  }
+}
