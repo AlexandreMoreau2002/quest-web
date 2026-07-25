@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { QuestApiClient } from '@/lib/api/client';
 import { fallbackSpace } from '@/lib/map/fallback';
@@ -9,6 +10,7 @@ import { buildQuestGraph, type Quest, type QuestSpace } from '@/lib/map/graph';
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 
 export function useQuestMap() {
+  const { t } = useTranslation();
   const [space, setSpace] = useState<QuestSpace>(fallbackSpace);
   const [source, setSource] = useState<'local' | 'api'>('local');
   const [selectedId, setSelectedId] = useState(fallbackSpace.quests[0]?.steps[0]?.id ?? '');
@@ -60,7 +62,7 @@ export function useQuestMap() {
         setError(null);
         return true;
       } catch {
-        setError('La quête n’a pas été enregistrée. Vérifie que l’API est bien lancée.');
+        setError(t('errors.questNotSaved'));
         return false;
       }
     }
@@ -111,7 +113,7 @@ export function useQuestMap() {
         setError(null);
         return true;
       } catch {
-        setError('L’étape n’a pas été enregistrée. Réessaie dans un instant.');
+        setError(t('errors.stepNotSaved'));
         return false;
       }
     }
@@ -130,7 +132,7 @@ export function useQuestMap() {
 
   const reparentStep = useCallback(async (stepId: string, newParentQuestId: string): Promise<boolean> => {
     if (source !== 'api') {
-      setError('Le re-parentage nécessite l’API. Lance l’API pour utiliser cette fonctionnalité.');
+      setError(t('errors.reparentRequiresApi'));
       return false;
     }
     try {
@@ -140,10 +142,10 @@ export function useQuestMap() {
       setError(null);
       return true;
     } catch {
-      setError('Le re-parentage a échoué. Réessaie dans un instant.');
+      setError(t('errors.reparentFailed'));
       return false;
     }
-  }, [source]);
+  }, [source, t]);
 
   const createLinkedGoal = useCallback((title: string) => createQuest(title, 'Première étape'), [createQuest]);
 
