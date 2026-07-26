@@ -14,13 +14,17 @@ function readStoredLocale(): SupportedLocale {
   return (VALID_LOCALES as string[]).includes(stored ?? '') ? (stored as SupportedLocale) : DEFAULT_LOCALE;
 }
 
+function getServerLocale(): SupportedLocale {
+  return DEFAULT_LOCALE;
+}
+
 function subscribe(onStoreChange: () => void): () => void {
   listeners.add(onStoreChange);
   return () => listeners.delete(onStoreChange);
 }
 
 export function useLocale() {
-  const locale = useSyncExternalStore(subscribe, readStoredLocale, () => DEFAULT_LOCALE);
+  const locale = useSyncExternalStore(subscribe, readStoredLocale, getServerLocale);
 
   const setLocale = useCallback((next: SupportedLocale) => {
     if (typeof window !== 'undefined') {
