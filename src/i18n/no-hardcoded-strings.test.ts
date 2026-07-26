@@ -4,7 +4,6 @@ import { describe, expect, it } from 'vitest';
 
 const MIGRATED_FILES = [
   'src/components/quest-map.tsx',
-  'src/components/branch-menu.tsx',
   'src/hooks/use-quest-map.ts',
 ];
 
