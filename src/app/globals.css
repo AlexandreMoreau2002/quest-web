@@ -63,7 +63,7 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 .inspector-title h2 { margin-top: 8px; }
 .inspector-orb { flex: none; width: 13px; height: 13px; margin-top: 11px; border-radius: 50%; box-shadow: 0 0 16px currentColor; }
 .state-badge { display: inline-block; margin: 12px 0 16px; padding: 5px 9px; border: 1px solid; border-radius: 999px; font: 500 10px var(--q-font-mono); }
-.state-badge.done { color: var(--q-done); border-color: color-mix(in srgb, var(--q-done), transparent 66%); background: color-mix(in srgb, var(--q-done), transparent 92%); }
+.state-badge.completed { color: var(--q-done); border-color: color-mix(in srgb, var(--q-done), transparent 66%); background: color-mix(in srgb, var(--q-done), transparent 92%); }
 .state-badge.active { color: var(--q-progress); border-color: color-mix(in srgb, var(--q-progress), transparent 64%); background: color-mix(in srgb, var(--q-progress), transparent 93%); }
 .state-badge.locked { color: var(--q-locked); border-color: color-mix(in srgb, var(--q-locked), transparent 76%); background: color-mix(in srgb, var(--q-locked), transparent 94%); }
 .secondary-button { width: 100%; padding: 11px 13px; margin-top: 20px; color: var(--q-text-muted); border: 1px solid var(--q-border-strong); background: rgba(255,255,255,.06); }
@@ -104,13 +104,11 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 .node-description { display: block; margin-top: 7px; color: var(--q-text-muted); font-size: 10px; }
 .node-handle { top: 50% !important; width: 8px !important; height: 8px !important; border: 2px solid var(--q-bg-elevated) !important; background: var(--quest-color) !important; opacity: .94; }
 
-.status-done { border-style: solid; }
+.status-completed { border-style: solid; }
 .status-active { border-style: solid; }
 .status-active .node-status::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: var(--q-progress); animation: q-pulse 1.8s ease-in-out infinite; vertical-align: middle; }
 /* Muted via filter, not opacity: opacity would punch a hole through the
    card's opaque backdrop and let connection lines behind it bleed through. */
-.status-locked { border-style: dashed !important; filter: saturate(.55) brightness(.88); }
-.status-locked strong, .status-locked .node-description { color: var(--q-text-subtle); }
 .status-loading { position: relative; overflow: hidden; }
 .status-loading::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;

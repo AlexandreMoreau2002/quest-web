@@ -1,8 +1,8 @@
 {
   "topbar": {
-    "eyebrow": "ACTIVE EXPEDITION",
+    "eyebrow": "Your atlas",
     "apiConnected": "API connected",
-    "localMode": "Exploration mode"
+    "localMode": "Local mode"
   },
   "theme": {
     "groupLabel": "Theme",
@@ -17,27 +17,36 @@
     "comingSoon": "Coming soon"
   },
   "creationPanel": {
-    "eyebrow": "DISPLAYED OBJECTIVE",
-    "title": "Choose a direction.",
+    "eyebrow": "New node",
+    "title": "Add to the Space",
+    "nodeTypeLabel": "Type",
+    "nodeTypeObjectif": "Goal",
+    "nodeTypeEtape": "Step",
+    "nodeTitleLabel": "Title",
+    "nodeTitlePlaceholder": "E.g.: Sign 3 recurring clients",
+    "submit": "Add",
+    "submitPending": "Adding…",
     "description": "Explore one objective at a time, then add its steps on the map.",
     "objectiveLabel": "Objective",
     "newObjectiveLabel": "New objective",
     "newObjectivePlaceholder": "E.g. Learn Italian",
     "firstStepLabel": "First project or step",
     "firstStepPlaceholder": "E.g. Choose a method",
-    "submit": "Create objective",
-    "submitPending": "Creating…",
     "tipLabel": "Tip",
     "tipText": "drag the map, pinch to zoom."
   },
   "inspector": {
+    "statusDone": "Done",
+    "statusActive": "Active",
+    "markDone": "Mark done",
+    "markActive": "Mark active again",
+    "validateObjectif": "Validate the goal",
+    "deleteNode": "Delete",
     "description": "This step gives concrete direction to your progress. Choose your next move, then go.",
     "addStepLabel": "Add a step to \"{{questTitle}}\"",
     "addStepPlaceholder": "E.g. Prepare the first test",
     "submit": "Add step",
     "submitPending": "Creating…",
-    "statusDone": "Done",
-    "statusActive": "In progress",
     "statusLocked": "Locked"
   },
   "emptyState": {
@@ -48,7 +57,7 @@
   "node": {
     "objectiveEyebrow": "Objective",
     "statusDone": "Done",
-    "statusActive": "In progress",
+    "statusActive": "Active",
     "statusLocked": "Upcoming",
     "objectiveDescription": "Space · {{questTitle}}"
   },
@@ -65,8 +74,8 @@
     "searchLabel": "Search an item"
   },
   "map": {
-    "hint": "Living map · click a step to explore it",
-    "ariaLabel": "Quest map",
+    "ariaLabel": "Space map",
+    "hint": "Drag a Card to move it, link two Cards from their handles.",
     "createObjectiveFab": "Create an objective"
   },
   "errors": {
