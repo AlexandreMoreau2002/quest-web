@@ -83,6 +83,43 @@ export function useSpaceMap() {
     }
   }, [source]);
 
+  const updateNodeTitle = useCallback(async (nodeId: string, nextTitle: string) => {
+    const title = nextTitle.trim();
+    if (!title) return false;
+
+    const previous = graph.nodes.find((node) => node.id === nodeId);
+    if (!previous) return false;
+
+    setGraph((current) => ({
+      ...current,
+      nodes: current.nodes.map((node) => node.id === nodeId ? { ...node, title } : node),
+    }));
+
+    if (source !== 'api') {
+      return true;
+    }
+
+    try {
+      const updated = await new QuestApiClient(API_URL).updateNode(nodeId, { title });
+      setGraph((current) => ({
+        ...current,
+        nodes: current.nodes.map((node) => node.id === nodeId ? updated : node),
+      }));
+      setError(null);
+      return true;
+    } catch {
+      setGraph((current) => ({
+        ...current,
+        nodes: current.nodes.map((node) => {
+          if (node.id !== nodeId) return node;
+          return node.title === title ? { ...node, title: previous.title } : node;
+        }),
+      }));
+      setError('Le titre n\'a pas pu être enregistré.');
+      return false;
+    }
+  }, [graph.nodes, source]);
+
   const validateObjectif = useCallback(async (nodeId: string) => {
     if (source !== 'api') {
       setError('La validation nécessite l\'API.');
@@ -150,6 +187,7 @@ export function useSpaceMap() {
     createNode,
     updateNodePosition,
     updateNodeStatus,
+    updateNodeTitle,
     validateObjectif,
     linkNodes,
     unlinkEdge,
