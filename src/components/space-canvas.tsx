@@ -1,7 +1,7 @@
 // web/src/components/space-canvas.tsx
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Controls,
@@ -68,7 +68,7 @@ export function SpaceCanvas() {
 function SpaceCanvasInner() {
   const {
     graph, source, error, selectedNodeId, selectNode,
-    createNode, updateNodePosition, updateNodeStatus, validateObjectif, linkNodes, unlinkEdge, removeNode,
+    createNode, updateNodePosition, updateNodeStatus, updateNodeTitle, validateObjectif, linkNodes, unlinkEdge, removeNode,
   } = useSpaceMap();
   const { themeId, setThemeId } = useTheme();
   const { locale, setLocale } = useLocale();
@@ -80,6 +80,12 @@ function SpaceCanvasInner() {
   const [isCreating, setIsCreating] = useState(false);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const connectingHandle = useRef<{ nodeId: string; handleType: 'source' | 'target' } | null>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const skipNextTitleBlur = useRef(false);
+  const focusTitleInputOnPaint = useRef(false);
+  const [renameError, setRenameError] = useState<string | null>(null);
+  const [titleDraft, setTitleDraft] = useState('');
+  const [draftNodeId, setDraftNodeId] = useState<string | null>(null);
 
   // useNodesState/useEdgesState keep a local, mutable copy that React Flow's
   // own drag handling updates frame-by-frame (via onNodesChange), so a card
@@ -145,6 +151,14 @@ function SpaceCanvasInner() {
     connectingHandle.current = { nodeId: params.nodeId, handleType: params.handleType };
   }, []);
 
+  const startRename = useCallback((nodeId: string, initialDraft?: string) => {
+    setRenameError(null);
+    setDraftNodeId(nodeId);
+    setTitleDraft(initialDraft ?? '');
+    focusTitleInputOnPaint.current = true;
+    selectNode(nodeId);
+  }, [selectNode]);
+
   // Dragging a link from a Card's handle and releasing it over empty canvas
   // (rather than onto another Card) creates a new linked Card at the drop
   // point — the "grow a branch" gesture the old anchor+menu interaction used
@@ -165,7 +179,7 @@ function SpaceCanvasInner() {
     void (async () => {
       const created = await createNode({
         type: 'ETAPE',
-        title: `Nouvelle étape (${Math.random().toString(36).slice(2, 6)})`,
+        title: t('inspector.temporaryChildTitle'),
         positionX: position.x,
         positionY: position.y,
       });
@@ -175,9 +189,9 @@ function SpaceCanvasInner() {
       } else {
         await linkNodes(created.id, pending.nodeId);
       }
-      selectNode(created.id);
+      startRename(created.id, '');
     })();
-  }, [createNode, linkNodes, screenToFlowPosition, selectNode]);
+  }, [createNode, linkNodes, screenToFlowPosition, startRename, t]);
 
   async function submitCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -190,6 +204,77 @@ function SpaceCanvasInner() {
   }
 
   const selectedNode = graph.nodes.find((node) => node.id === selectedNodeId) ?? null;
+  const currentTitleDraft = selectedNode
+    ? (draftNodeId === selectedNode.id ? titleDraft : selectedNode.title)
+    : '';
+
+  useEffect(() => {
+    if (!selectedNode || !focusTitleInputOnPaint.current) return;
+    titleInputRef.current?.focus();
+    titleInputRef.current?.select();
+    focusTitleInputOnPaint.current = false;
+  });
+
+  const commitTitleDraft = useCallback(async () => {
+    if (!selectedNode) return;
+
+    const nextTitle = currentTitleDraft.trim();
+    if (!nextTitle) {
+      setRenameError(null);
+      setDraftNodeId(selectedNode.id);
+      setTitleDraft(selectedNode.title);
+      return;
+    }
+
+    if (nextTitle === selectedNode.title) {
+      setRenameError(null);
+      setDraftNodeId(selectedNode.id);
+      setTitleDraft(nextTitle);
+      return;
+    }
+
+    const saved = await updateNodeTitle(selectedNode.id, nextTitle);
+    if (!saved) {
+      setRenameError(selectedNode.id);
+      setDraftNodeId(selectedNode.id);
+      setTitleDraft(selectedNode.title);
+      return;
+    }
+
+    setRenameError(null);
+    setDraftNodeId(selectedNode.id);
+    setTitleDraft(nextTitle);
+  }, [currentTitleDraft, selectedNode, updateNodeTitle]);
+
+  async function handleTitleBlur() {
+    if (skipNextTitleBlur.current) {
+      skipNextTitleBlur.current = false;
+      return;
+    }
+    await commitTitleDraft();
+  }
+
+  async function handleTitleKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (!selectedNode) return;
+    const input = event.currentTarget;
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      skipNextTitleBlur.current = true;
+      await commitTitleDraft();
+      input.blur();
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      skipNextTitleBlur.current = true;
+      setRenameError(null);
+      setDraftNodeId(selectedNode.id);
+      setTitleDraft(selectedNode.title);
+      input.blur();
+    }
+  }
 
   return (
     <main className={`quest-shell ${THEME_CLASS[themeId]} atlas-calm`} aria-label={t('map.ariaLabel')}>
@@ -204,7 +289,10 @@ function SpaceCanvasInner() {
         onConnect={handleConnect}
         onConnectStart={handleConnectStart}
         onConnectEnd={handleConnectEnd}
-        onNodeClick={(_, node) => selectNode(node.id)}
+        onNodeClick={(_, node) => {
+          setRenameError(null);
+          selectNode(node.id);
+        }}
         fitView
         fitViewOptions={{ padding: 0.18 }}
         minZoom={0.3}
@@ -254,28 +342,66 @@ function SpaceCanvasInner() {
 
       {selectedNode && (
         <aside className={`inspector glass-panel ${isMobile ? 'bottom-sheet' : ''}`} data-map-overlay>
-          <div className="inspector-title">
-            <h2>{selectedNode.title}</h2>
+          {isMobile && <div className="bottom-sheet-handle" />}
+          <div className="inspector-header">
+            <div className="inspector-label-group">
+              <p className="eyebrow">
+                {selectedNode.type === 'OBJECTIF' ? t('creationPanel.nodeTypeObjectif') : t('creationPanel.nodeTypeEtape')}
+              </p>
+              <p className="panel-copy">{t('inspector.description')}</p>
+            </div>
+            <button
+              type="button"
+              className="secondary-button inspector-close"
+              aria-label={t('inspector.close')}
+              onClick={() => {
+                setRenameError(null);
+                selectNode(null);
+              }}
+            >
+              ×
+            </button>
           </div>
+          <div className="inspector-field">
+            <label htmlFor="inspector-node-title">{t('inspector.titleLabel')}</label>
+            <input
+              id="inspector-node-title"
+              ref={titleInputRef}
+              value={currentTitleDraft}
+              onBlur={() => void handleTitleBlur()}
+              onChange={(event) => {
+                setRenameError(null);
+                setDraftNodeId(selectedNode.id);
+                setTitleDraft(event.target.value);
+              }}
+              onKeyDown={(event) => void handleTitleKeyDown(event)}
+              placeholder={t('inspector.titlePlaceholder')}
+            />
+            <p className="inspector-hint">{t('inspector.titleHint')}</p>
+          </div>
+          {renameError === selectedNode.id && <p className="form-error" role="alert">{t('inspector.titleError')}</p>}
           <span className={`state-badge ${selectedNode.status}`}>
             {selectedNode.status === 'completed' ? t('inspector.statusDone') : t('inspector.statusActive')}
           </span>
-          {selectedNode.type === 'ETAPE' && (
-            <button
-              type="button"
-              onClick={() => void updateNodeStatus(selectedNode.id, selectedNode.status === 'completed' ? 'active' : 'completed')}
-            >
-              {selectedNode.status === 'completed' ? t('inspector.markActive') : t('inspector.markDone')}
+          <div className="inspector-actions">
+            {selectedNode.type === 'ETAPE' && (
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() => void updateNodeStatus(selectedNode.id, selectedNode.status === 'completed' ? 'active' : 'completed')}
+              >
+                {selectedNode.status === 'completed' ? t('inspector.markActive') : t('inspector.markDone')}
+              </button>
+            )}
+            {selectedNode.type === 'OBJECTIF' && selectedNode.status !== 'completed' && (
+              <button type="button" className="secondary-button" onClick={() => void validateObjectif(selectedNode.id)}>
+                {t('inspector.validateObjectif')}
+              </button>
+            )}
+            <button type="button" className="danger" onClick={() => void removeNode(selectedNode.id)}>
+              {t('inspector.deleteNode')}
             </button>
-          )}
-          {selectedNode.type === 'OBJECTIF' && selectedNode.status !== 'completed' && (
-            <button type="button" onClick={() => void validateObjectif(selectedNode.id)}>
-              {t('inspector.validateObjectif')}
-            </button>
-          )}
-          <button type="button" className="danger" onClick={() => void removeNode(selectedNode.id)}>
-            {t('inspector.deleteNode')}
-          </button>
+          </div>
         </aside>
       )}
 
