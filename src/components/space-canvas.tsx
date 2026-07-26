@@ -56,6 +56,11 @@ function SpaceNodeCard({ data, selected }: NodeProps<SpaceFlowNode>) {
 
 const nodeTypes = { spaceNode: SpaceNodeCard };
 const edgeTypes = { quest: QuestEdge };
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1']);
+
+function isLocalHostname(hostname: string) {
+  return LOCAL_HOSTNAMES.has(hostname);
+}
 
 export function SpaceCanvas() {
   return (
@@ -79,6 +84,7 @@ function SpaceCanvasInner() {
   const [newNodeTitle, setNewNodeTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [isLocalHost, setIsLocalHost] = useState(false);
   const connectingHandle = useRef<{ nodeId: string; handleType: 'source' | 'target' } | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const skipNextTitleBlur = useRef(false);
@@ -94,6 +100,13 @@ function SpaceCanvasInner() {
   // `graph` (the source of truth) when it changes from outside a drag.
   const [nodes, setNodes, onNodesChangeInternal] = useNodesState<SpaceFlowNode>([]);
   const [edges, setEdges, onEdgesChangeInternal] = useEdgesState<Edge>([]);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setIsLocalHost(isLocalHostname(window.location.hostname));
+    });
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   useEffect(() => {
     setNodes(graph.nodes.map((node) => ({
@@ -315,9 +328,11 @@ function SpaceCanvasInner() {
           <p className="eyebrow">{t('topbar.eyebrow')}</p>
           <h1>{graph.name}</h1>
         </div>
-        <span className={`connection-pill ${source === 'api' ? 'api' : ''}`}>
-          <i /> {source === 'api' ? t('topbar.apiConnected') : t('topbar.localMode')}
-        </span>
+        {isLocalHost && (
+          <span className={`connection-pill ${source === 'api' ? 'api' : ''}`}>
+            <i /> {source === 'api' ? t('topbar.apiConnected') : t('topbar.localMode')}
+          </span>
+        )}
         <ThemeSwitcher activeTheme={themeId} onSelect={setThemeId} />
         <LanguageToggle activeLocale={locale} onSelect={setLocale} />
       </header>

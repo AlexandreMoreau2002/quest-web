@@ -8,6 +8,8 @@ import { SpaceCanvas } from './space-canvas';
 import type { CreateNodeInput } from '@/lib/api/client';
 import type { SpaceGraph, SpaceNode } from '@/lib/map/graph';
 
+const originalWindow = window;
+
 const mockStore = vi.hoisted(() => {
   const baseGraph: SpaceGraph = {
     id: 'space-1',
@@ -291,7 +293,37 @@ describe('SpaceCanvas inspector rename flow', () => {
 
   afterEach(() => {
     cleanup();
+    vi.unstubAllGlobals();
     vi.clearAllMocks();
+  });
+
+  it.each(['localhost', '127.0.0.1', '::1'])('shows the connection pill on %s', async (hostname) => {
+    vi.stubGlobal('window', new Proxy(originalWindow, {
+      get(target, property, receiver) {
+        if (property === 'location') return { ...target.location, hostname };
+        return Reflect.get(target, property, receiver);
+      },
+    }));
+
+    render(<SpaceCanvas />);
+
+    expect(await screen.findByText('Mode local')).toBeTruthy();
+  });
+
+  it('hides the connection pill on public hostnames', async () => {
+    vi.stubGlobal('window', new Proxy(originalWindow, {
+      get(target, property, receiver) {
+        if (property === 'location') return { ...target.location, hostname: 'quest.example.com' };
+        return Reflect.get(target, property, receiver);
+      },
+    }));
+
+    render(<SpaceCanvas />);
+
+    await waitFor(() => {
+      expect(screen.queryByText('Mode local')).toBeNull();
+      expect(screen.queryByText('API connectée')).toBeNull();
+    });
   });
 
   it('saves an edited inspector title on Enter', async () => {
