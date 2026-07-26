@@ -379,10 +379,15 @@ describe('SpaceCanvas inspector rename flow', () => {
     });
   });
 
-  it('does not show the rename error when the hook error comes from another action', async () => {
-    mockStore.setError("La suppression a échoué.");
+  it('keeps the inspector error visible without leaking the shared hook error into the creation panel', async () => {
+    mockStore.failNextRename();
     render(<SpaceCanvas />);
 
-    expect(screen.queryByText('Le titre n’a pas pu être enregistré. Réessaie dans un instant.')).toBeNull();
+    const input = screen.getByLabelText('Titre du nœud') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: 'Titre en erreur' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(await screen.findByText('Le titre n’a pas pu être enregistré. Réessaie dans un instant.')).toBeTruthy();
+    expect(screen.queryByText("Le titre n'a pas pu être enregistré.")).toBeNull();
   });
 });

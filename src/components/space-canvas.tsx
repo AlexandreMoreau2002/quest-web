@@ -337,7 +337,7 @@ function SpaceCanvasInner() {
             {isCreating ? t('creationPanel.submitPending') : t('creationPanel.submit')} <span>→</span>
           </button>
         </form>
-        {error && <p className="form-error" role="alert">{error}</p>}
+        {error && !renameError && <p className="form-error" role="alert">{error}</p>}
       </aside>
 
       {selectedNode && (
