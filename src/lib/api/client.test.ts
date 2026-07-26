@@ -1,76 +1,43 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
-
+import { describe, expect, it, vi } from 'vitest';
 import { QuestApiClient } from './client';
 
 describe('QuestApiClient', () => {
-  afterEach(() => vi.unstubAllGlobals());
-
-  it('loads the first available space and its map from the configured API', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockResolvedValueOnce(new Response(JSON.stringify([{ id: 'space-a', name: 'Vie' }]), { status: 200 }))
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({ id: 'space-a', name: 'Vie', quests: [] }),
-          { status: 200 },
-        ),
-      );
+  it('creates a node against the space nodes endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ id: 'node-1' }) });
     vi.stubGlobal('fetch', fetchMock);
 
-    const map = await new QuestApiClient('http://localhost:3001').loadFirstMap();
+    const client = new QuestApiClient('http://api.test');
+    await client.createNode('space-1', { type: 'ETAPE', title: 'Test' });
 
-    expect(map).toMatchObject({ id: 'space-a', name: 'Vie' });
-    expect(fetchMock).toHaveBeenNthCalledWith(1, 'http://localhost:3001/spaces', { cache: 'no-store' });
-    expect(fetchMock).toHaveBeenNthCalledWith(2, 'http://localhost:3001/spaces/space-a/map', {
-      cache: 'no-store',
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://api.test/spaces/space-1/nodes',
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 
-  it('creates a quest in the selected space through the API', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          id: 'quest-a',
-          title: 'Lancer Quest',
-          description: null,
-          steps: [{ id: 'step-a', title: 'Définir le MVP', status: 'active' }],
-        }),
-        { status: 201 },
-      ),
-    );
+  it('creates an edge against the space edges endpoint', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ id: 'edge-1' }) });
     vi.stubGlobal('fetch', fetchMock);
 
-    await new QuestApiClient('http://localhost:3001').createQuest('space-a', {
-      title: 'Lancer Quest',
-      steps: ['Définir le MVP'],
-    });
+    const client = new QuestApiClient('http://api.test');
+    await client.createEdge('space-1', { sourceNodeId: 'a', targetNodeId: 'b' });
 
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/spaces/space-a/quests', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title: 'Lancer Quest', steps: ['Définir le MVP'] }),
-    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://api.test/spaces/space-1/edges',
+      expect.objectContaining({ method: 'POST' }),
+    );
   });
 
-  it('updateStep sends a PATCH request with the given fields', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({ id: 'step-a', title: 'Définir le MVP', status: 'active' }),
-        { status: 200 },
-      ),
-    );
+  it('deletes an edge with a DELETE request', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal('fetch', fetchMock);
 
-    const result = await new QuestApiClient('http://localhost:3001').updateStep('step-a', {
-      parentStepId: 'step-b',
-      order: 2,
-    });
+    const client = new QuestApiClient('http://api.test');
+    await client.deleteEdge('edge-1');
 
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:3001/steps/step-a', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ parentStepId: 'step-b', order: 2 }),
-    });
-    expect(result).toMatchObject({ id: 'step-a', title: 'Définir le MVP', status: 'active' });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://api.test/edges/edge-1',
+      expect.objectContaining({ method: 'DELETE' }),
+    );
   });
 });

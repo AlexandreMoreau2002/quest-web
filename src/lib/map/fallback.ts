@@ -1,37 +1,22 @@
-import type { QuestSpace } from './graph';
+import type { SpaceGraph } from './graph';
 
-export const fallbackSpace: QuestSpace = {
+export const fallbackSpace: SpaceGraph = {
   id: 'local-atlas',
-  name: 'L’atlas d’Alex',
-  quests: [
-    {
-      id: 'forge',
-      title: 'Forger une force calme',
-      color: '#b49cff',
-      steps: [
-        { id: 'forge-1', title: 'Choisir le programme', status: 'done' },
-        { id: 'forge-2', title: '3 séances régulières', status: 'active' },
-        { id: 'forge-3', title: 'Valider le premier cycle', status: 'locked' },
-      ],
-    },
-    {
-      id: 'summit',
-      title: 'Atteindre le sommet',
-      color: '#55d9bd',
-      steps: [
-        { id: 'summit-1', title: 'Tracer l’itinéraire', status: 'done' },
-        { id: 'summit-2', title: 'Sortie d’endurance', status: 'active' },
-        { id: 'summit-3', title: 'Jour d’ascension', status: 'locked' },
-      ],
-    },
-    {
-      id: 'studio',
-      title: 'Créer chaque semaine',
-      color: '#f6ae6e',
-      steps: [
-        { id: 'studio-1', title: 'Installer le rituel', status: 'done' },
-        { id: 'studio-2', title: 'Publier une note', status: 'active' },
-      ],
-    },
+  name: 'L'atlas d'Alex',
+  nodes: [
+    { id: 'main', type: 'OBJECTIF', title: 'Gagner beaucoup d'argent', status: 'active', positionX: 640, positionY: 80 },
+    { id: 'freelance', type: 'OBJECTIF', title: 'Développer mon activité freelance', status: 'active', positionX: 160, positionY: 360 },
+    { id: 'signer-clients', type: 'ETAPE', title: 'Signer 3 clients récurrents', status: 'active', positionX: 160, positionY: 600 },
+    { id: 'cloudbreak', type: 'OBJECTIF', title: 'Lancer Cloudbreak', status: 'active', positionX: 640, positionY: 360 },
+    { id: 'epargne-3000', type: 'ETAPE', title: 'Épargner 3 000 € de trésorerie', status: 'active', positionX: 900, positionY: 600 },
+    { id: 'achat-revente', type: 'OBJECTIF', title: 'Démarrer l'achat-revente de voitures', status: 'active', positionX: 1120, positionY: 360 },
+  ],
+  edges: [
+    { id: 'e-freelance-main', sourceNodeId: 'freelance', targetNodeId: 'main' },
+    { id: 'e-cloudbreak-main', sourceNodeId: 'cloudbreak', targetNodeId: 'main' },
+    { id: 'e-achat-main', sourceNodeId: 'achat-revente', targetNodeId: 'main' },
+    { id: 'e-signer-freelance', sourceNodeId: 'signer-clients', targetNodeId: 'freelance' },
+    { id: 'e-epargne-cloudbreak', sourceNodeId: 'epargne-3000', targetNodeId: 'cloudbreak' },
+    { id: 'e-epargne-achat', sourceNodeId: 'epargne-3000', targetNodeId: 'achat-revente' },
   ],
 };
