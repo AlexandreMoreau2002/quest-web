@@ -297,7 +297,7 @@ describe('SpaceCanvas inspector rename flow', () => {
     vi.clearAllMocks();
   });
 
-  it.each(['localhost', '127.0.0.1', '::1'])('shows the connection pill on %s', async (hostname) => {
+  it.each(['localhost', '127.0.0.1', '[::1]'])('shows the connection pill on %s', async (hostname) => {
     vi.stubGlobal('window', new Proxy(originalWindow, {
       get(target, property, receiver) {
         if (property === 'location') return { ...target.location, hostname };
@@ -310,7 +310,25 @@ describe('SpaceCanvas inspector rename flow', () => {
     expect(await screen.findByText('Mode local')).toBeTruthy();
   });
 
-  it('hides the connection pill on public hostnames', async () => {
+  it('shows the API connection pill and api class on a local hostname', async () => {
+    mockStore.state.source = 'api';
+    vi.stubGlobal('window', new Proxy(originalWindow, {
+      get(target, property, receiver) {
+        if (property === 'location') return { ...target.location, hostname: 'localhost' };
+        return Reflect.get(target, property, receiver);
+      },
+    }));
+
+    render(<SpaceCanvas />);
+
+    await waitFor(() => expect(document.querySelector('.connection-pill')).not.toBeNull());
+    const apiPill = document.querySelector('.connection-pill');
+    expect(apiPill?.textContent).toContain('API connectée');
+    expect(apiPill?.className).toContain('connection-pill api');
+  });
+
+  it('hides the API connection pill on public hostnames', async () => {
+    mockStore.state.source = 'api';
     vi.stubGlobal('window', new Proxy(originalWindow, {
       get(target, property, receiver) {
         if (property === 'location') return { ...target.location, hostname: 'quest.example.com' };

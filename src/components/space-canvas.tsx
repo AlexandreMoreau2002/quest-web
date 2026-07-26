@@ -56,7 +56,7 @@ function SpaceNodeCard({ data, selected }: NodeProps<SpaceFlowNode>) {
 
 const nodeTypes = { spaceNode: SpaceNodeCard };
 const edgeTypes = { quest: QuestEdge };
-const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1']);
+const LOCAL_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
 
 function isLocalHostname(hostname: string) {
   return LOCAL_HOSTNAMES.has(hostname);
