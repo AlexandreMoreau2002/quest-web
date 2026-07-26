@@ -16,8 +16,6 @@ import {
   type Node,
   type NodeChange,
   type NodeProps,
-  applyEdgeChanges,
-  applyNodeChanges,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -93,13 +91,17 @@ function SpaceCanvasInner() {
     style: { stroke: 'var(--q-conn)', strokeWidth: 1.4, strokeDasharray: '7 9', opacity: 0.8 },
   }));
 
+  // Note: we don't feed these changes back through applyNodeChanges/setState.
+  // @xyflow/react mutates its own internal node-position store directly while
+  // a drag is in progress (see XYDrag in @xyflow/system), independent of the
+  // controlled `nodes` prop, so the drag itself stays smooth. We only need to
+  // persist the *final* position once the drag ends.
   function handleNodesChange(changes: NodeChange<SpaceFlowNode>[]) {
     for (const change of changes) {
       if (change.type === 'position' && change.dragging === false && change.position) {
         void updateNodePosition(change.id, change.position.x, change.position.y);
       }
     }
-    applyNodeChanges(changes, flowNodes);
   }
 
   function handleEdgesChange(changes: EdgeChange<Edge>[]) {
@@ -115,7 +117,6 @@ function SpaceCanvasInner() {
         });
       }
     }
-    applyEdgeChanges(changes, flowEdges);
   }
 
   function handleConnect(connection: Connection) {

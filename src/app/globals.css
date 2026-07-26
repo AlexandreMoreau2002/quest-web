@@ -75,7 +75,10 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 /* The invisible wide hit-area xyflow renders alongside every custom edge path
    only becomes clickable under `pointer-events: visibleStroke` if it has an
    actual (even fully transparent) stroke color; without this it silently
-   never registers clicks, making edges nearly impossible to select. */
+   never registers clicks, making edges nearly impossible to select.
+   This rule is global — it applies to every edge type rendered via
+   @xyflow/react's BaseEdge, not just our `quest` type. There is only one
+   edge type today, but keep this in mind if a second one is ever added. */
 .react-flow__edge-interaction { stroke: transparent; }
 .quest-node {
   position: relative; width: 224px; min-height: 100px; padding: 16px 18px 15px;
