@@ -1,21 +1,25 @@
 // web/src/components/space-canvas.tsx
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Background,
   Controls,
   Handle,
   Position,
   ReactFlow,
   ReactFlowProvider,
+  useEdgesState,
+  useNodesState,
+  useReactFlow,
   type Connection,
   type Edge,
   type EdgeChange,
   type Node,
   type NodeChange,
   type NodeProps,
+  type OnConnectEnd,
+  type OnConnectStart,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
@@ -69,34 +73,45 @@ function SpaceCanvasInner() {
   const { themeId, setThemeId } = useTheme();
   const { locale, setLocale } = useLocale();
   const { t } = useTranslation();
+  const { screenToFlowPosition } = useReactFlow();
   const isMobile = useMediaQuery('(max-width: 760px)');
   const [newNodeType, setNewNodeType] = useState<NodeType>('ETAPE');
   const [newNodeTitle, setNewNodeTitle] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const connectingHandle = useRef<{ nodeId: string; handleType: 'source' | 'target' } | null>(null);
 
-  const flowNodes: SpaceFlowNode[] = graph.nodes.map((node) => ({
-    id: node.id,
-    type: 'spaceNode',
-    position: { x: node.positionX, y: node.positionY },
-    selected: node.id === selectedNodeId,
-    data: node as SpaceNode & Record<string, unknown>,
-  }));
-  const flowEdges: Edge[] = graph.edges.map((edge) => ({
-    id: edge.id,
-    source: edge.sourceNodeId,
-    target: edge.targetNodeId,
-    type: 'quest',
-    selected: edge.id === selectedEdgeId,
-    style: { stroke: 'var(--q-conn)', strokeWidth: 1.4, strokeDasharray: '7 9', opacity: 0.8 },
-  }));
+  // useNodesState/useEdgesState keep a local, mutable copy that React Flow's
+  // own drag handling updates frame-by-frame (via onNodesChange), so a card
+  // tracks the cursor exactly instead of waiting for the position to round-trip
+  // through useSpaceMap's state on every animation frame. We only resync from
+  // `graph` (the source of truth) when it changes from outside a drag.
+  const [nodes, setNodes, onNodesChangeInternal] = useNodesState<SpaceFlowNode>([]);
+  const [edges, setEdges, onEdgesChangeInternal] = useEdgesState<Edge>([]);
 
-  // Note: we don't feed these changes back through applyNodeChanges/setState.
-  // @xyflow/react mutates its own internal node-position store directly while
-  // a drag is in progress (see XYDrag in @xyflow/system), independent of the
-  // controlled `nodes` prop, so the drag itself stays smooth. We only need to
-  // persist the *final* position once the drag ends.
+  useEffect(() => {
+    setNodes(graph.nodes.map((node) => ({
+      id: node.id,
+      type: 'spaceNode',
+      position: { x: node.positionX, y: node.positionY },
+      selected: node.id === selectedNodeId,
+      data: node as SpaceNode & Record<string, unknown>,
+    })));
+  }, [graph.nodes, selectedNodeId, setNodes]);
+
+  useEffect(() => {
+    setEdges(graph.edges.map((edge) => ({
+      id: edge.id,
+      source: edge.sourceNodeId,
+      target: edge.targetNodeId,
+      type: 'quest',
+      selected: edge.id === selectedEdgeId,
+      style: { stroke: 'var(--q-conn)', strokeWidth: 1.4, strokeDasharray: '7 9', opacity: 0.8 },
+    })));
+  }, [graph.edges, selectedEdgeId, setEdges]);
+
   function handleNodesChange(changes: NodeChange<SpaceFlowNode>[]) {
+    onNodesChangeInternal(changes);
     for (const change of changes) {
       if (change.type === 'position' && change.dragging === false && change.position) {
         void updateNodePosition(change.id, change.position.x, change.position.y);
@@ -105,6 +120,7 @@ function SpaceCanvasInner() {
   }
 
   function handleEdgesChange(changes: EdgeChange<Edge>[]) {
+    onEdgesChangeInternal(changes);
     for (const change of changes) {
       if (change.type === 'remove') {
         void unlinkEdge(change.id);
@@ -124,6 +140,45 @@ function SpaceCanvasInner() {
     void linkNodes(connection.source, connection.target);
   }
 
+  const handleConnectStart: OnConnectStart = useCallback((_event, params) => {
+    if (!params.nodeId || !params.handleType) return;
+    connectingHandle.current = { nodeId: params.nodeId, handleType: params.handleType };
+  }, []);
+
+  // Dragging a link from a Card's handle and releasing it over empty canvas
+  // (rather than onto another Card) creates a new linked Card at the drop
+  // point — the "grow a branch" gesture the old anchor+menu interaction used
+  // to provide, now expressed through React Flow's native connect gesture.
+  const handleConnectEnd: OnConnectEnd = useCallback((event) => {
+    const pending = connectingHandle.current;
+    connectingHandle.current = null;
+    if (!pending) return;
+
+    const target = event.target as HTMLElement | null;
+    if (!target?.classList.contains('react-flow__pane')) return;
+
+    const point = 'changedTouches' in event
+      ? { x: event.changedTouches[0]!.clientX, y: event.changedTouches[0]!.clientY }
+      : { x: event.clientX, y: event.clientY };
+    const position = screenToFlowPosition(point);
+
+    void (async () => {
+      const created = await createNode({
+        type: 'ETAPE',
+        title: `Nouvelle étape (${Math.random().toString(36).slice(2, 6)})`,
+        positionX: position.x,
+        positionY: position.y,
+      });
+      if (!created) return;
+      if (pending.handleType === 'source') {
+        await linkNodes(pending.nodeId, created.id);
+      } else {
+        await linkNodes(created.id, pending.nodeId);
+      }
+      selectNode(created.id);
+    })();
+  }, [createNode, linkNodes, screenToFlowPosition, selectNode]);
+
   async function submitCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsCreating(true);
@@ -140,13 +195,15 @@ function SpaceCanvasInner() {
     <main className={`quest-shell ${THEME_CLASS[themeId]} atlas-calm`} aria-label={t('map.ariaLabel')}>
       <ReactFlow
         className="quest-flow"
-        nodes={flowNodes}
-        edges={flowEdges}
+        nodes={nodes}
+        edges={edges}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
+        onConnectStart={handleConnectStart}
+        onConnectEnd={handleConnectEnd}
         onNodeClick={(_, node) => selectNode(node.id)}
         fitView
         fitViewOptions={{ padding: 0.18 }}
@@ -161,7 +218,6 @@ function SpaceCanvasInner() {
         deleteKeyCode={['Backspace', 'Delete']}
         proOptions={{ hideAttribution: true }}
       >
-        <Background />
         <Controls showInteractive={false} />
       </ReactFlow>
 
