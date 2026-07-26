@@ -72,6 +72,11 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 .map-hint { position: absolute; z-index: 5; bottom: 28px; right: 33px; margin: 0; color: var(--q-text-subtle); font: 10px var(--q-font-mono); pointer-events: auto; }
 
 .quest-edge .react-flow__edge-path { stroke-linecap: round; }
+/* The invisible wide hit-area xyflow renders alongside every custom edge path
+   only becomes clickable under `pointer-events: visibleStroke` if it has an
+   actual (even fully transparent) stroke color; without this it silently
+   never registers clicks, making edges nearly impossible to select. */
+.react-flow__edge-interaction { stroke: transparent; }
 .quest-node {
   position: relative; width: 224px; min-height: 100px; padding: 16px 18px 15px;
   border: 1.5px solid color-mix(in srgb, var(--quest-color), transparent 40%);
