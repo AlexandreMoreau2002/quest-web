@@ -16,20 +16,47 @@ describe('useLocale', () => {
     expect(result.current.locale).toBe('fr');
   });
 
-  it('persists the chosen locale to localStorage and reflects it on next mount', () => {
+  it('persists the chosen locale to localStorage and reflects it after mount', async () => {
     const { result } = renderHook(() => useLocale());
     act(() => result.current.setLocale('en'));
-    expect(result.current.locale).toBe('en');
     expect(localStorage.getItem('quest-locale')).toBe('en');
 
+    await waitFor(() => {
+      expect(result.current.locale).toBe('en');
+    });
+
     const { result: secondMount } = renderHook(() => useLocale());
-    expect(secondMount.current.locale).toBe('en');
+    await waitFor(() => {
+      expect(secondMount.current.locale).toBe('en');
+    });
   });
 
-  it('ignores a corrupted stored value and falls back to fr', () => {
+  it('starts in French on the client and restores English after mount when English is persisted', async () => {
+    localStorage.setItem('quest-locale', 'en');
+
+    const renderLog: string[] = [];
+
+    const { result } = renderHook(() => {
+      const { locale } = useLocale();
+      renderLog.push(locale);
+      return { locale };
+    });
+
+    expect(renderLog[0]).toBe('fr');
+
+    await waitFor(() => {
+      expect(result.current.locale).toBe('en');
+    });
+  });
+
+  it('ignores a corrupted stored value and falls back to fr', async () => {
     localStorage.setItem('quest-locale', 'not-a-real-locale');
     const { result } = renderHook(() => useLocale());
     expect(result.current.locale).toBe('fr');
+
+    await waitFor(() => {
+      expect(result.current.locale).toBe('fr');
+    });
   });
 
   it('keeps the server snapshot in French when English is persisted', async () => {

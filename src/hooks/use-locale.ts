@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import i18n, { DEFAULT_LOCALE, type SupportedLocale } from '@/i18n/config';
 
@@ -14,24 +14,32 @@ function readStoredLocale(): SupportedLocale {
   return (VALID_LOCALES as string[]).includes(stored ?? '') ? (stored as SupportedLocale) : DEFAULT_LOCALE;
 }
 
-function getServerLocale(): SupportedLocale {
-  return DEFAULT_LOCALE;
-}
-
-function subscribe(onStoreChange: () => void): () => void {
-  listeners.add(onStoreChange);
-  return () => listeners.delete(onStoreChange);
+function notifyListeners(): void {
+  listeners.forEach((listener) => listener());
 }
 
 export function useLocale() {
-  const locale = useSyncExternalStore(subscribe, readStoredLocale, getServerLocale);
+  const [locale, setLocaleState] = useState<SupportedLocale>(DEFAULT_LOCALE);
+
+  useEffect(() => {
+    const syncLocale = () => {
+      setLocaleState(readStoredLocale());
+    };
+
+    syncLocale();
+    listeners.add(syncLocale);
+
+    return () => {
+      listeners.delete(syncLocale);
+    };
+  }, []);
 
   const setLocale = useCallback((next: SupportedLocale) => {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(STORAGE_KEY, next);
     }
     void i18n.changeLanguage(next);
-    listeners.forEach((listener) => listener());
+    notifyListeners();
   }, []);
 
   return { locale, setLocale };
