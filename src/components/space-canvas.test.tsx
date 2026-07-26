@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import '@/i18n/config';
@@ -336,12 +336,19 @@ describe('SpaceCanvas inspector rename flow', () => {
       },
     }));
 
-    render(<SpaceCanvas />);
+    vi.useFakeTimers();
+    try {
+      render(<SpaceCanvas />);
 
-    await waitFor(() => {
+      await act(async () => {
+        vi.runAllTimers();
+      });
+
       expect(screen.queryByText('Mode local')).toBeNull();
       expect(screen.queryByText('API connectée')).toBeNull();
-    });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('saves an edited inspector title on Enter', async () => {
