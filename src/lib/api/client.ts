@@ -1,52 +1,63 @@
-import type { Quest, QuestSpace, QuestStep } from '@/lib/map/graph';
+import type { NodeType, SpaceGraph, SpaceNode } from '@/lib/map/graph';
 
-export type CreateQuestInput = {
+export type CreateNodeInput = {
+  type: NodeType;
   title: string;
   description?: string;
-  steps: string[];
+  positionX?: number;
+  positionY?: number;
 };
 
-export type CreateStepInput = {
-  title: string;
-  order?: number;
-  parentStepId?: string;
-};
-
-export type UpdateStepInput = {
+export type UpdateNodeInput = {
   title?: string;
-  status?: QuestStep['status'];
-  parentStepId?: string;
-  order?: number;
+  description?: string;
+  status?: SpaceNode['status'];
+  positionX?: number;
+  positionY?: number;
+};
+
+export type CreateEdgeInput = {
+  sourceNodeId: string;
+  targetNodeId: string;
 };
 
 export class QuestApiClient {
   constructor(private readonly baseUrl: string) {}
 
-  async loadFirstMap(): Promise<QuestSpace> {
-    const spaces = await this.getJson<Array<Pick<QuestSpace, 'id' | 'name'>>>('/spaces');
+  async loadFirstSpace(): Promise<SpaceGraph> {
+    const spaces = await this.getJson<Array<Pick<SpaceGraph, 'id' | 'name'>>>('/spaces');
     if (spaces.length === 0) {
       throw new Error('Aucun espace disponible');
     }
-
-    let firstMap: QuestSpace | undefined;
-    for (const space of spaces) {
-      const map = await this.getJson<QuestSpace>(`/spaces/${space.id}/map`);
-      firstMap ??= map;
-      if (map.quests.length > 0) return map;
-    }
-    return firstMap!;
+    return this.getJson<SpaceGraph>(`/spaces/${spaces[0]!.id}/graph`);
   }
 
-  createQuest(spaceId: string, input: CreateQuestInput): Promise<Quest> {
-    return this.sendJson<Quest>(`/spaces/${spaceId}/quests`, input);
+  createNode(spaceId: string, input: CreateNodeInput): Promise<SpaceNode> {
+    return this.sendJson<SpaceNode>(`/spaces/${spaceId}/nodes`, input);
   }
 
-  createStep(questId: string, input: CreateStepInput): Promise<QuestStep> {
-    return this.sendJson<QuestStep>(`/quests/${questId}/steps`, input);
+  updateNode(nodeId: string, input: UpdateNodeInput): Promise<SpaceNode> {
+    return this.patchJson<SpaceNode>(`/nodes/${nodeId}`, input);
   }
 
-  updateStep(stepId: string, input: UpdateStepInput): Promise<QuestStep> {
-    return this.patchJson<QuestStep>(`/steps/${stepId}`, input);
+  async deleteNode(nodeId: string): Promise<void> {
+    await this.deleteRequest(`/nodes/${nodeId}`);
+  }
+
+  validateObjectif(nodeId: string): Promise<SpaceNode> {
+    return this.sendJson<SpaceNode>(`/nodes/${nodeId}/validate`, {});
+  }
+
+  progressFor(nodeId: string): Promise<{ percent: number; totalAncestors: number; completedAncestors: number }> {
+    return this.getJson(`/nodes/${nodeId}/progress`);
+  }
+
+  createEdge(spaceId: string, input: CreateEdgeInput): Promise<{ id: string; sourceNodeId: string; targetNodeId: string }> {
+    return this.sendJson(`/spaces/${spaceId}/edges`, input);
+  }
+
+  async deleteEdge(edgeId: string): Promise<void> {
+    await this.deleteRequest(`/edges/${edgeId}`);
   }
 
   private async getJson<T>(path: string): Promise<T> {
@@ -79,5 +90,12 @@ export class QuestApiClient {
       throw new Error(`Mise à jour impossible (${response.status})`);
     }
     return response.json() as Promise<T>;
+  }
+
+  private async deleteRequest(path: string): Promise<void> {
+    const response = await fetch(`${this.baseUrl.replace(/\/$/, '')}${path}`, { method: 'DELETE' });
+    if (!response.ok) {
+      throw new Error(`Suppression impossible (${response.status})`);
+    }
   }
 }

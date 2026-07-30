@@ -3,9 +3,8 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 const MIGRATED_FILES = [
-  'src/components/quest-map.tsx',
-  'src/components/branch-menu.tsx',
-  'src/hooks/use-quest-map.ts',
+  'src/components/space-canvas.tsx',
+  'src/hooks/use-space-map.ts',
 ];
 
 const FORBIDDEN_LITERALS = [

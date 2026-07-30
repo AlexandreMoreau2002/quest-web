@@ -58,20 +58,61 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 .tip { margin: 20px 0 0; color: var(--q-text-subtle); font-size: 11px; line-height: 1.5; }
 .tip b { color: var(--q-text-muted); }
 
-.inspector { right: 32px; top: 104px; width: 294px; padding: 22px; }
-.inspector-title { display: flex; align-items: flex-start; gap: 10px; }
-.inspector-title h2 { margin-top: 8px; }
+.inspector { right: 32px; top: 104px; width: 320px; padding: 22px; }
+.inspector-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.inspector-label-group { display: grid; gap: 10px; }
+.inspector-label-group .panel-copy { margin: 0; }
+.inspector-close.secondary-button {
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  margin-top: 0;
+  padding: 0;
+  color: var(--q-text);
+  font-size: 24px;
+  line-height: 1;
+}
+.inspector-field { display: grid; gap: 8px; margin-top: 20px; }
+.inspector-field label { color: var(--q-text-muted); font-size: 11px; font-weight: 600; }
+.inspector-field input {
+  font: 600 18px/1.2 var(--q-font-display);
+  letter-spacing: -.02em;
+}
+.inspector-hint {
+  margin: 0;
+  color: var(--q-text-subtle);
+  font: 10px/1.5 var(--q-font-mono);
+}
 .inspector-orb { flex: none; width: 13px; height: 13px; margin-top: 11px; border-radius: 50%; box-shadow: 0 0 16px currentColor; }
 .state-badge { display: inline-block; margin: 12px 0 16px; padding: 5px 9px; border: 1px solid; border-radius: 999px; font: 500 10px var(--q-font-mono); }
-.state-badge.done { color: var(--q-done); border-color: color-mix(in srgb, var(--q-done), transparent 66%); background: color-mix(in srgb, var(--q-done), transparent 92%); }
+.state-badge.completed { color: var(--q-done); border-color: color-mix(in srgb, var(--q-done), transparent 66%); background: color-mix(in srgb, var(--q-done), transparent 92%); }
 .state-badge.active { color: var(--q-progress); border-color: color-mix(in srgb, var(--q-progress), transparent 64%); background: color-mix(in srgb, var(--q-progress), transparent 93%); }
 .state-badge.locked { color: var(--q-locked); border-color: color-mix(in srgb, var(--q-locked), transparent 76%); background: color-mix(in srgb, var(--q-locked), transparent 94%); }
 .secondary-button { width: 100%; padding: 11px 13px; margin-top: 20px; color: var(--q-text-muted); border: 1px solid var(--q-border-strong); background: rgba(255,255,255,.06); }
+.inspector-actions { display: grid; gap: 10px; }
+.inspector-actions .secondary-button,
+.inspector-actions .danger { margin-top: 0; }
+.danger {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, var(--q-error), transparent 45%);
+  border-radius: 9px;
+  color: var(--q-error-text);
+  background: color-mix(in srgb, var(--q-error), transparent 90%);
+}
 .step-form { margin-top: 18px; }
 .step-form button { padding: 10px 12px; margin-top: 2px; }
 .map-hint { position: absolute; z-index: 5; bottom: 28px; right: 33px; margin: 0; color: var(--q-text-subtle); font: 10px var(--q-font-mono); pointer-events: auto; }
 
 .quest-edge .react-flow__edge-path { stroke-linecap: round; }
+/* The invisible wide hit-area xyflow renders alongside every custom edge path
+   only becomes clickable under `pointer-events: visibleStroke` if it has an
+   actual (even fully transparent) stroke color; without this it silently
+   never registers clicks, making edges nearly impossible to select.
+   This rule is global — it applies to every edge type rendered via
+   @xyflow/react's BaseEdge, not just our `quest` type. There is only one
+   edge type today, but keep this in mind if a second one is ever added. */
+.react-flow__edge-interaction { stroke: transparent; }
 .quest-node {
   position: relative; width: 224px; min-height: 100px; padding: 16px 18px 15px;
   border: 1.5px solid color-mix(in srgb, var(--quest-color), transparent 40%);
@@ -96,13 +137,11 @@ button span { float: right; font-size: 16px; line-height: 11px; }
 .node-description { display: block; margin-top: 7px; color: var(--q-text-muted); font-size: 10px; }
 .node-handle { top: 50% !important; width: 8px !important; height: 8px !important; border: 2px solid var(--q-bg-elevated) !important; background: var(--quest-color) !important; opacity: .94; }
 
-.status-done { border-style: solid; }
+.status-completed { border-style: solid; }
 .status-active { border-style: solid; }
 .status-active .node-status::before { content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: var(--q-progress); animation: q-pulse 1.8s ease-in-out infinite; vertical-align: middle; }
 /* Muted via filter, not opacity: opacity would punch a hole through the
    card's opaque backdrop and let connection lines behind it bleed through. */
-.status-locked { border-style: dashed !important; filter: saturate(.55) brightness(.88); }
-.status-locked strong, .status-locked .node-description { color: var(--q-text-subtle); }
 .status-loading { position: relative; overflow: hidden; }
 .status-loading::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
@@ -125,8 +164,10 @@ button span { float: right; font-size: 16px; line-height: 11px; }
   .topbar { top: 17px; left: 17px; right: 17px; }
   .creation-panel { top: auto; left: 16px; bottom: 18px; width: min(290px, calc(100vw - 32px)); padding: 17px; }
   .creation-panel .panel-copy, .tip { display: none; }
-  .inspector:not(.bottom-sheet) { top: 75px; right: 16px; width: min(280px, calc(100vw - 32px)); padding: 16px; }
-  .inspector .panel-copy, .secondary-button { display: none; }
+  .inspector:not(.bottom-sheet) { top: 75px; right: 16px; width: min(296px, calc(100vw - 32px)); padding: 16px; }
+  .inspector .panel-copy { display: none; }
+  .inspector-header { gap: 12px; }
+  .inspector-field input { font-size: 16px; }
   .map-hint { display: none; }
   .connection-pill { font-size: 0; padding: 9px; }
   .connection-pill i { margin: 0; }

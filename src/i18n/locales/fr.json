@@ -1,8 +1,8 @@
 {
   "topbar": {
-    "eyebrow": "EXPÉDITION ACTIVE",
+    "eyebrow": "Ton atlas",
     "apiConnected": "API connectée",
-    "localMode": "Mode exploration"
+    "localMode": "Mode local"
   },
   "theme": {
     "groupLabel": "Choix du thème",
@@ -17,27 +17,42 @@
     "comingSoon": "Bientôt disponible"
   },
   "creationPanel": {
-    "eyebrow": "OBJECTIF AFFICHÉ",
-    "title": "Choisis un cap.",
+    "eyebrow": "Nouveau nœud",
+    "title": "Ajouter au Space",
+    "nodeTypeLabel": "Type",
+    "nodeTypeObjectif": "Objectif",
+    "nodeTypeEtape": "Étape",
+    "nodeTitleLabel": "Titre",
+    "nodeTitlePlaceholder": "Ex : Signer 3 clients récurrents",
+    "submit": "Ajouter",
+    "submitPending": "Ajout…",
     "description": "Explore un objectif à la fois, puis ajoute ses étapes sur la carte.",
     "objectiveLabel": "Objectif",
     "newObjectiveLabel": "Nouvel objectif",
     "newObjectivePlaceholder": "Ex. Apprendre l’italien",
     "firstStepLabel": "Premier projet ou étape",
     "firstStepPlaceholder": "Ex. Choisir une méthode",
-    "submit": "Créer l’objectif",
-    "submitPending": "Création…",
     "tipLabel": "Astuce",
     "tipText": "fais glisser la carte, pince pour zoomer."
   },
   "inspector": {
-    "description": "Cette étape donne une direction concrète à ta progression. Choisis le prochain geste, puis avance.",
+    "statusDone": "Complété",
+    "statusActive": "Actif",
+    "markDone": "Marquer complété",
+    "markActive": "Remettre actif",
+    "validateObjectif": "Valider l’objectif",
+    "deleteNode": "Supprimer",
+    "titleLabel": "Titre du nœud",
+    "titlePlaceholder": "Ex. Débloquer le prochain client",
+    "titleHint": "Entrée ou perte de focus pour enregistrer. Échap pour annuler.",
+    "titleError": "Le titre n’a pas pu être enregistré. Réessaie dans un instant.",
+    "close": "Fermer l’inspecteur",
+    "temporaryChildTitle": "Nouvelle étape",
+    "description": "Ce nœud clarifie son rôle sur la carte et t’aide à choisir le prochain mouvement.",
     "addStepLabel": "Ajouter une étape à « {{questTitle}} »",
     "addStepPlaceholder": "Ex. Préparer le premier test",
     "submit": "Ajouter l’étape",
     "submitPending": "Création…",
-    "statusDone": "Accompli",
-    "statusActive": "En cours",
     "statusLocked": "Verrouillé"
   },
   "emptyState": {
@@ -47,8 +62,8 @@
   },
   "node": {
     "objectiveEyebrow": "Objectif",
-    "statusDone": "Accompli",
-    "statusActive": "En cours",
+    "statusDone": "Complété",
+    "statusActive": "Actif",
     "statusLocked": "À venir",
     "objectiveDescription": "Espace · {{questTitle}}"
   },
@@ -65,8 +80,8 @@
     "searchLabel": "Rechercher un élément"
   },
   "map": {
-    "hint": "Carte vivante · clique une étape pour l’explorer",
-    "ariaLabel": "Carte de quête",
+    "ariaLabel": "Carte du Space",
+    "hint": "Glisse une Card pour la déplacer, relie deux Cards depuis leurs poignées.",
     "createObjectiveFab": "Créer un objectif"
   },
   "errors": {

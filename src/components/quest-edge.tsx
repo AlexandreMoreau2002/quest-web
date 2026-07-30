@@ -2,15 +2,44 @@
 
 import { BaseEdge, useInternalNode, type EdgeProps } from '@xyflow/react';
 
-import { intersectRectangle, type Rect } from '@/lib/map/edge-geometry';
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Returns the point where a ray from the rectangle's center toward
+ * `towardPoint` crosses the rectangle's boundary.
+ */
+export function intersectRectangle(rect: Rect, towardPoint: { x: number; y: number }) {
+  const cx = rect.x + rect.width / 2;
+  const cy = rect.y + rect.height / 2;
+  const hw = rect.width / 2;
+  const hh = rect.height / 2;
+
+  const dx = towardPoint.x - cx;
+  const dy = towardPoint.y - cy;
+
+  if (dx === 0 && dy === 0) {
+    return { x: cx, y: cy };
+  }
+
+  const scaleX = dx !== 0 ? hw / Math.abs(dx) : Infinity;
+  const scaleY = dy !== 0 ? hh / Math.abs(dy) : Infinity;
+  const scale = Math.min(scaleX, scaleY);
+
+  return { x: cx + dx * scale, y: cy + dy * scale };
+}
 
 const OBJECTIVE_SIZE = { width: 272, height: 132 };
 const STEP_SIZE = { width: 224, height: 100 };
 
 function nodeRect(node: ReturnType<typeof useInternalNode>): Rect | null {
   if (!node) return null;
-  const isObjective = Boolean((node.data as { isObjective?: boolean }).isObjective);
-  const size = isObjective ? OBJECTIVE_SIZE : STEP_SIZE;
+  const isObjectif = (node.data as { type?: string }).type === 'OBJECTIF';
+  const size = isObjectif ? OBJECTIVE_SIZE : STEP_SIZE;
   return {
     x: node.internals.positionAbsolute.x,
     y: node.internals.positionAbsolute.y,
