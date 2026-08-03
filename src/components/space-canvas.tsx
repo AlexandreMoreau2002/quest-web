@@ -327,13 +327,15 @@ function SpaceCanvasInner() {
           <p className="eyebrow">{t('topbar.eyebrow')}</p>
           <h1>{graph.name}</h1>
         </div>
-        {isLocalHost && (
-          <span className={`connection-pill ${source === 'api' ? 'api' : ''}`}>
-            <i /> {source === 'api' ? t('topbar.apiConnected') : t('topbar.localMode')}
-          </span>
-        )}
-        <ThemeSwitcher activeTheme={themeId} onSelect={setThemeId} />
-        <LanguageToggle activeLocale={locale} onSelect={setLocale} />
+        <div className="topbar-controls">
+          {isLocalHost && (
+            <span className={`connection-pill ${source === 'api' ? 'api' : ''}`}>
+              <i /> {source === 'api' ? t('topbar.apiConnected') : t('topbar.localMode')}
+            </span>
+          )}
+          <ThemeSwitcher activeTheme={themeId} onSelect={setThemeId} />
+          <LanguageToggle activeLocale={locale} onSelect={setLocale} />
+        </div>
       </header>
 
       <aside className={`creation-panel glass-panel ${isMobile ? 'bottom-sheet' : ''}`} data-map-overlay>
