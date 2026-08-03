@@ -85,7 +85,7 @@ function SpaceCanvasInner() {
   const [isCreating, setIsCreating] = useState(false);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
   const [isLocalHost, setIsLocalHost] = useState(false);
-  const connectingHandle = useRef<{ nodeId: string; handleType: 'source' | 'target' } | null>(null);
+  const connectingNodeId = useRef<string | null>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const skipNextTitleBlur = useRef(false);
   const focusTitleInputOnPaint = useRef(false);
@@ -161,7 +161,7 @@ function SpaceCanvasInner() {
 
   const handleConnectStart: OnConnectStart = useCallback((_event, params) => {
     if (!params.nodeId || !params.handleType) return;
-    connectingHandle.current = { nodeId: params.nodeId, handleType: params.handleType };
+    connectingNodeId.current = params.nodeId;
   }, []);
 
   const startRename = useCallback((nodeId: string, initialDraft?: string) => {
@@ -177,9 +177,9 @@ function SpaceCanvasInner() {
   // point — the "grow a branch" gesture the old anchor+menu interaction used
   // to provide, now expressed through React Flow's native connect gesture.
   const handleConnectEnd: OnConnectEnd = useCallback((event) => {
-    const pending = connectingHandle.current;
-    connectingHandle.current = null;
-    if (!pending) return;
+    const pendingNodeId = connectingNodeId.current;
+    connectingNodeId.current = null;
+    if (!pendingNodeId) return;
 
     const target = event.target as HTMLElement | null;
     if (!target?.classList.contains('react-flow__pane')) return;
@@ -197,11 +197,10 @@ function SpaceCanvasInner() {
         positionY: position.y,
       });
       if (!created) return;
-      if (pending.handleType === 'source') {
-        await linkNodes(pending.nodeId, created.id);
-      } else {
-        await linkNodes(created.id, pending.nodeId);
-      }
+      // Edges always point child -> parent (see nodes.service.ts#progress),
+      // so the newly grown card is always the edge source regardless of
+      // which handle the drag started from.
+      await linkNodes(created.id, pendingNodeId);
       startRename(created.id, '');
     })();
   }, [createNode, linkNodes, screenToFlowPosition, startRename, t]);
