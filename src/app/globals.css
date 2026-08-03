@@ -35,7 +35,8 @@ button { cursor: pointer; }
 .brand-mark { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 13px; color: var(--q-accent-contrast); font: 700 22px var(--q-font-display); background: var(--q-cta-bg); box-shadow: var(--q-shadow-3); }
 .topbar h1 { margin: 1px 0 0; font: 600 19px var(--q-font-display); letter-spacing: -.02em; color: var(--q-text); }
 .eyebrow { margin: 0; color: var(--q-text-muted); font: 500 10px var(--q-font-mono); letter-spacing: .13em; }
-.connection-pill { margin-left: auto; padding: 8px 11px; border: 1px solid var(--q-border); border-radius: 999px; color: var(--q-text-muted); background: var(--q-surface-2); backdrop-filter: blur(12px); font-size: 11px; }
+.topbar-controls { display: flex; align-items: center; gap: 12px; margin-left: auto; }
+.connection-pill { padding: 8px 11px; border: 1px solid var(--q-border); border-radius: 999px; color: var(--q-text-muted); background: var(--q-surface-2); backdrop-filter: blur(12px); font-size: 11px; }
 .connection-pill i { display: inline-block; width: 6px; height: 6px; margin-right: 5px; border-radius: 50%; background: #f5b464; box-shadow: 0 0 8px #f5b464; }
 .connection-pill.api i { background: var(--q-done); box-shadow: 0 0 8px var(--q-done); }
 
