@@ -138,18 +138,20 @@ export function useSpaceMap() {
   }, [source]);
 
   const linkNodes = useCallback(async (sourceNodeId: string, targetNodeId: string) => {
-    if (source !== 'api') {
-      setError('La création de lien nécessite l\'API.');
+    if (source === 'api') {
+      try {
+        const edge = await new QuestApiClient(API_URL).createEdge(graph.id, { sourceNodeId, targetNodeId });
+        setGraph((current) => ({ ...current, edges: [...current.edges, edge] }));
+        setError(null);
+      } catch (cause) {
+        console.error('linkNodes failed', { sourceNodeId, targetNodeId, cause });
+        setError('Le lien n\'a pas pu être créé.');
+      }
       return;
     }
-    try {
-      const edge = await new QuestApiClient(API_URL).createEdge(graph.id, { sourceNodeId, targetNodeId });
-      setGraph((current) => ({ ...current, edges: [...current.edges, edge] }));
-      setError(null);
-    } catch (cause) {
-      console.error('linkNodes failed', { sourceNodeId, targetNodeId, cause });
-      setError('Le lien n\'a pas pu être créé.');
-    }
+
+    const edge = { id: `local-${Date.now()}`, sourceNodeId, targetNodeId };
+    setGraph((current) => ({ ...current, edges: [...current.edges, edge] }));
   }, [graph.id, source]);
 
   const unlinkEdge = useCallback(async (edgeId: string) => {
