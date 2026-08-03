@@ -146,7 +146,8 @@ export function useSpaceMap() {
       const edge = await new QuestApiClient(API_URL).createEdge(graph.id, { sourceNodeId, targetNodeId });
       setGraph((current) => ({ ...current, edges: [...current.edges, edge] }));
       setError(null);
-    } catch {
+    } catch (cause) {
+      console.error('linkNodes failed', { sourceNodeId, targetNodeId, cause });
       setError('Le lien n\'a pas pu être créé.');
     }
   }, [graph.id, source]);
