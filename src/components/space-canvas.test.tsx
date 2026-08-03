@@ -409,7 +409,7 @@ describe('SpaceCanvas inspector rename flow', () => {
 
     await waitFor(() => {
       expect(mockStore.createNode).toHaveBeenCalled();
-      expect(mockStore.linkNodes).toHaveBeenCalledWith('main', 'created-1');
+      expect(mockStore.linkNodes).toHaveBeenCalledWith('created-1', 'main');
     });
 
     const input = await screen.findByLabelText('Titre du nœud') as HTMLInputElement;
